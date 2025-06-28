@@ -22,61 +22,43 @@ Challenges:
 - Liquidity risk: Market-specific tokens may have low liquidity
 - Oracle complexity: Need custom pricing logic for conditional tokens
 
-## Oracle Architecture Deep Dive
+## Pricing Architecture: On-Chain Settlement Data
 
-### Latency Requirements for Lending Vault
-For a lending vault using prediction tokens as collateral, oracle requirements differ from both perps and prediction market creation:
+### No External Oracles Needed
+Instead of external oracles, we derive prices directly from Polymarket's on-chain settlement data:
 
-**Medium-latency oracles needed because:**
-- Liquidation protection requires timely price updates when market sentiment shifts rapidly
-- Prediction token prices can move 20-80% in minutes during major events
-- Need to protect lenders from bad debt when collateral value crashes
-- More critical than prediction market resolution, less critical than perp liquidations
+**Why this approach works:**
+- Polymarket settles all trades on-chain via `OrderFilled` events
+- Each event contains exact trade amounts: `makerAmountFilled` / `takerAmountFilled`
+- Price = USDC amount / token amount (ranges 0.0 to 1.0)
+- Trustless, immutable, and real-time price discovery
 
-**Recommended update frequency: 30-60 seconds during active periods**
-- Event-driven updates for major news/developments
-- Regular heartbeat updates every 1-2 minutes
-- Faster than standard push feeds (5-15 min) but not as fast as perp feeds (sub-second)
+### On-Chain Price Feed Implementation
+```solidity
+// Monitor OrderFilled events from Polymarket's CTFExchange
+event OrderFilled(
+    bytes32 indexed orderHash,
+    address indexed maker,
+    address indexed taker,
+    uint256 makerAssetId,     // 0 = USDC, else = token ID
+    uint256 takerAssetId,     // 0 = USDC, else = token ID  
+    uint256 makerAmountFilled, // Amount given out
+    uint256 takerAmountFilled, // Amount received
+    uint256 fee
+);
 
-### Oracle Provider Analysis
-
-**For Lending Vault Collateral Pricing:**
-
-**Chainlink (Preferred for production):**
-- **Pros:** 
-  - Established lending protocol integration (Aave, Compound use it)
-  - Reliable uptime and dispute-resistant
-  - Can create custom feeds for prediction tokens if volume justifies
-- **Cons:** 
-  - May not support exotic prediction tokens initially
-  - Higher cost for custom feeds
-
-**UMA (Good for MVP/niche tokens):**
-- **Pros:** 
-  - Can price any prediction token without pre-existing feed
-  - Optimistic design reduces gas costs
-  - Handles edge cases and illiquid markets well
-- **Cons:** 
-  - 2-hour challenge period creates liquidation delays
-  - Less battle-tested for high-stakes lending
-
-**Pyth (Overkill but viable):**
-- **Pros:** 
-  - Sub-second updates provide maximum liquidation protection
-  - Growing DeFi adoption
-- **Cons:** 
-  - Premium pricing not cost-effective for prediction tokens
-  - Over-engineered for this use case
-
-**Recommendation:** Start with UMA for MVP, migrate to Chainlink custom feeds as volume grows
-
-### Custom Pricing Logic Requirements
+// Calculate price from settlement data
+price = (makerAssetId == 0) ? 
+    makerAmountFilled / takerAmountFilled :  // Buy order
+    takerAmountFilled / makerAmountFilled;   // Sell order
 ```
-Conditional Token Value = Market Probability × Potential Payout
-- YES token: Current market probability (0.0 to 1.0)
-- NO token: (1 - market probability)
-- Oracle must aggregate multiple data sources for probability
-```
+
+### Price Feed Features
+- **Real-time updates**: Every trade settlement updates price
+- **Time-weighted averaging**: TWAP prevents manipulation
+- **Market-specific pricing**: Asset IDs map to specific prediction markets
+- **Gas efficient**: Read from existing events, no external calls
+- **Trustless**: No reliance on centralized APIs or external oracles
 
 The technical infrastructure exists, but you'll need custom wrapper contracts and sophisticated risk management due to the unique nature of prediction
 market tokens.
