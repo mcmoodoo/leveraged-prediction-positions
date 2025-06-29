@@ -11,7 +11,7 @@ remappings = [
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
 
 [rpc_endpoints]
-polygon = "https://polygon-rpc.com"
+polygon = "${POLYGON_RPC_URL}"
 
 [etherscan]
 polygon = { key = "${POLYGONSCAN_API_KEY}" }
