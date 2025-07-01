@@ -1,15 +1,18 @@
-import { useState } from 'react'
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import React, { useState } from 'react'
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
+import { useNavigate } from 'react-router-dom'
 import { parseUnits } from 'viem'
 import { Package, ArrowRight, CheckCircle, Loader2, Info } from 'lucide-react'
 import { CONTRACTS, ABIS } from '../contracts/contracts'
 
 const WrapTokens = () => {
   const { address } = useAccount()
+  const navigate = useNavigate()
   const [tokenId, setTokenId] = useState('')
   const [amount, setAmount] = useState('')
   const [tokenType, setTokenType] = useState<'YES' | 'NO'>('YES')
   const [isLoading, setIsLoading] = useState(false)
+  const [needsApproval, setNeedsApproval] = useState(false)
 
   const { writeContract, data: hash, error } = useWriteContract()
   
@@ -17,21 +20,80 @@ const WrapTokens = () => {
     hash,
   })
 
-  const handleWrap = async () => {
-    if (!tokenId || !amount || !address) return
+  const wrapperAddress = tokenType === 'YES' 
+    ? CONTRACTS.POLYGON.YES_TOKEN_WRAPPER 
+    : CONTRACTS.POLYGON.NO_TOKEN_WRAPPER
+
+  // Check if approval is needed
+  const { data: isApproved } = useReadContract({
+    address: CONTRACTS.POLYGON.CONDITIONAL_TOKENS,
+    abi: ABIS.CONDITIONAL_TOKENS,
+    functionName: 'isApprovedForAll',
+    args: address ? [address, wrapperAddress] : undefined,
+    query: {
+      enabled: !!address,
+    },
+  })
+
+  // Check token balance
+  const { data: tokenBalance } = useReadContract({
+    address: CONTRACTS.POLYGON.CONDITIONAL_TOKENS,
+    abi: ABIS.CONDITIONAL_TOKENS,
+    functionName: 'balanceOf',
+    args: address && tokenId ? [address, BigInt(tokenId)] : undefined,
+    query: {
+      enabled: !!address && !!tokenId,
+    },
+  })
+
+  React.useEffect(() => {
+    setNeedsApproval(!isApproved)
+  }, [isApproved])
+
+  const handleApprove = async () => {
+    if (!address) return
 
     setIsLoading(true)
     
     try {
-      const wrapperAddress = tokenType === 'YES' 
-        ? CONTRACTS.POLYGON.YES_TOKEN_WRAPPER 
-        : CONTRACTS.POLYGON.NO_TOKEN_WRAPPER
-
       await writeContract({
-        address: wrapperAddress,
-        abi: ABIS.WRAPPER,
-        functionName: 'wrap',
-        args: [BigInt(tokenId), parseUnits(amount, 18)],
+        address: CONTRACTS.POLYGON.CONDITIONAL_TOKENS,
+        abi: ABIS.CONDITIONAL_TOKENS,
+        functionName: 'setApprovalForAll',
+        args: [wrapperAddress, true],
+      })
+    } catch (error) {
+      console.error('Approval failed:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleWrap = async () => {
+    if (!tokenId || !amount || !address) return
+
+    // Polymarket tokens use 0 decimals (integers)
+    const requestedAmount = BigInt(amount)
+    if (tokenBalance && requestedAmount > tokenBalance) {
+      console.error('Insufficient balance:', {
+        requested: requestedAmount.toString(),
+        available: tokenBalance.toString(),
+        requestedFormatted: amount,
+        availableFormatted: tokenBalance.toString()
+      })
+      return
+    }
+
+    setIsLoading(true)
+    
+    try {
+      // Use safeTransferFrom with wrapper contract as the recipient
+      // The wrapper should handle the wrapping in the onERC1155Received callback
+      await writeContract({
+        address: CONTRACTS.POLYGON.CONDITIONAL_TOKENS,
+        abi: ABIS.CONDITIONAL_TOKENS,
+        functionName: 'safeTransferFrom',
+        args: [address, wrapperAddress, BigInt(tokenId), requestedAmount, '0x'],
       })
     } catch (error) {
       console.error('Wrap failed:', error)
@@ -64,7 +126,10 @@ const WrapTokens = () => {
             >
               Wrap More Tokens
             </button>
-            <button className="btn-primary">
+            <button 
+              onClick={() => navigate('/position')}
+              className="btn-primary"
+            >
               Create Position
             </button>
           </div>
@@ -150,9 +215,16 @@ const WrapTokens = () => {
               placeholder="Enter the Polymarket token ID"
               className="input-field"
             />
-            <p className="text-xs text-neutral-500 mt-1">
-              You can find the token ID on Polymarket or from the contract logs
-            </p>
+            <div className="flex justify-between items-center mt-1">
+              <p className="text-xs text-neutral-500">
+                You can find the token ID on Polymarket or from the contract logs
+              </p>
+              {tokenBalance !== undefined && tokenId && (
+                <p className="text-xs font-medium text-navy-700">
+                  Balance: {Number(tokenBalance).toLocaleString()} tokens
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Amount Input */}
@@ -190,6 +262,12 @@ const WrapTokens = () => {
                   <span className="text-neutral-600">Amount:</span>
                   <span className="text-navy-900">{amount} Tokens</span>
                 </div>
+                {tokenBalance !== undefined && (
+                  <div className="flex justify-between">
+                    <span className="text-neutral-600">Your Balance:</span>
+                    <span className="text-navy-900">{Number(tokenBalance).toLocaleString()} Tokens</span>
+                  </div>
+                )}
                 <div className="flex justify-center py-2">
                   <ArrowRight className="w-4 h-4 text-neutral-400" />
                 </div>
@@ -206,10 +284,39 @@ const WrapTokens = () => {
             </div>
           )}
 
+          {/* Approval Section */}
+          {needsApproval && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <Info className="w-4 h-4 text-yellow-600" />
+                <span className="text-sm font-medium text-yellow-800">
+                  Approval Required
+                </span>
+              </div>
+              <p className="text-sm text-yellow-700 mb-3">
+                You need to approve the wrapper contract to spend your tokens before wrapping.
+              </p>
+              <button
+                onClick={handleApprove}
+                disabled={isLoading || isConfirming}
+                className="btn-secondary text-sm"
+              >
+                {isLoading || isConfirming ? (
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Approving...</span>
+                  </div>
+                ) : (
+                  'Approve Wrapper'
+                )}
+              </button>
+            </div>
+          )}
+
           {/* Submit Button */}
           <button
             onClick={handleWrap}
-            disabled={!tokenId || !amount || isLoading || isConfirming}
+            disabled={!tokenId || !amount || isLoading || isConfirming || needsApproval}
             className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading || isConfirming ? (
