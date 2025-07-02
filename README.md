@@ -2,6 +2,21 @@
 
 33064224357523449786613480102704635026181428303479305990935387590344871823925 in 0x4D97DCd97eC945f40cF65F87097ACe5EA0476045
 
+## Infrastructure
+
+```solidity
+    address constant POLYGON_CTF = 0x4D97DCd97eC945f40cF65F87097ACe5EA0476045;
+    address constant POLYGON_CTF_EXCHANGE = 0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E;
+
+    address constant MORPHO_BLUE_POLYGON = 0x1bF0c2541F820E775182832f06c0B7Fc27A25f67;
+
+    address constant WRAPPED_YES_TOKEN = 0x_WRAP_THE_YES_TOKEN_IN_AN_ERC_20_CONTRACT_AN_GET_ITS_ADDRESS_HERE // collateral asset
+    address constant USDC_MOCK = 0x_DEPLOY_FIRST // lending asset
+    uint256 constant LLTV = 770000000000000000; // 77%
+    address constant MOCK_ORACLE = 0x_this should return collateral_price / loan_price
+    address constant ADAPTIVE_CURVE_IRM = 0xe675A2161D4a6E2de2eeD70ac98EEBf257FBF0B0;
+```
+
 ## Deployment
 
 1. I first need to deploy the collateral token (wrapped ERC1155 of the above token ID)
@@ -9,3 +24,8 @@
 3. Liquidation Loan-to-Value (LLTV) would be set at 77% for now: 770000000000000000
 4. The mocked oracle should already be deployed
 5. I will re-use the Interest Rate Model contract at `address constant ADAPTIVE_CURVE_IRM = 0xe675A2161D4a6E2de2eeD70ac98EEBf257FBF0B0;`
+
+## Prompt
+
+- remove all the stuff related to the default contract Counter
+- create a contract, deployment script, and test file for Mock Usdc. Give it a ticker mockUSDC
