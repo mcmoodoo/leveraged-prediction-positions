@@ -21,6 +21,11 @@
 
 1. I first need to deploy the collateral token (wrapped ERC1155 of the above token ID)
 2. The loan token would be the mocked USDC mUSD
+   Mock USDC deployed on Polygon with 1_000_000 total supply and 6 decimal points for fractions
+
+   ✅ [Success] Hash: 0x71c3f91e4a9c40dd66f21694985ce5e5b6bc86bd270812cfc2f73659b7c413bf
+   Contract Address: 0xb1b52134F9cD0F3E84E5861bCb444d4dF2A1aC80
+
 3. Liquidation Loan-to-Value (LLTV) would be set at 77% for now: 770000000000000000
 4. The mocked oracle should already be deployed
 5. I will re-use the Interest Rate Model contract at `address constant ADAPTIVE_CURVE_IRM = 0xe675A2161D4a6E2de2eeD70ac98EEBf257FBF0B0;`
