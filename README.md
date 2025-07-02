@@ -27,10 +27,8 @@
    Contract Address: 0xb1b52134F9cD0F3E84E5861bCb444d4dF2A1aC80
 
 3. Liquidation Loan-to-Value (LLTV) would be set at 77% for now: 770000000000000000
-4. The mocked oracle should already be deployed
+4. The mock oracle should already be deployed
+   - Let's add a mock oracle smart contract that complies with chainlink's aggregator v3 interface. The token pair in this case collateral/loan
 5. I will re-use the Interest Rate Model contract at `address constant ADAPTIVE_CURVE_IRM = 0xe675A2161D4a6E2de2eeD70ac98EEBf257FBF0B0;`
 
 ## Prompt
-
-- remove all the stuff related to the default contract Counter
-- create a contract, deployment script, and test file for Mock Usdc. Give it a ticker mockUSDC
