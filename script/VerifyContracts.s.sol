@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Script.sol";
+import "forge-std/console.sol";
 
 contract VerifyContractsScript is Script {
     function run() external {
@@ -45,14 +46,14 @@ contract VerifyContractsScript is Script {
         console.log("3. PolymarketLendingVault (YES Vault):");
         console.log("Address:", lendingVaultAddress1);
         console.log("Verification command:");
-        console.log("forge verify-contract", lendingVaultAddress1, "src/PolymarketLendingVault.sol:PolymarketLendingVault --chain-id 137 --constructor-args $(cast abi-encode \"constructor(address,address,address,address,address)\" 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb", priceFeedAddress, "0x2B188B402c07051982FA1b6aA942d6fc361e45B4", yesWrapperAddress, "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC)");
+        console.log("forge verify-contract %s src/PolymarketLendingVault.sol:PolymarketLendingVault --chain-id 137 --constructor-args $(cast abi-encode \"constructor(address,address,address,address,address)\" 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb %s 0x2B188B402c07051982FA1b6aA942d6fc361e45B4 %s 0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC)", lendingVaultAddress1, priceFeedAddress, yesWrapperAddress);
         console.log("");
         
         // PolymarketLendingVault verification (second instance - NO Vault)  
         console.log("4. PolymarketLendingVault (NO Vault):");
         console.log("Address:", lendingVaultAddress2);
         console.log("Verification command:");
-        console.log("forge verify-contract", lendingVaultAddress2, "src/PolymarketLendingVault.sol:PolymarketLendingVault --chain-id 137 --constructor-args $(cast abi-encode \"constructor(address,address,address,address,address)\" 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb", priceFeedAddress, "0x2B188B402c07051982FA1b6aA942d6fc361e45B4", noWrapperAddress, "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC)");
+        console.log("forge verify-contract %s src/PolymarketLendingVault.sol:PolymarketLendingVault --chain-id 137 --constructor-args $(cast abi-encode \"constructor(address,address,address,address,address)\" 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb %s 0x2B188B402c07051982FA1b6aA942d6fc361e45B4 %s 0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC)", lendingVaultAddress2, priceFeedAddress, noWrapperAddress);
         console.log("");
         
         console.log("=== Verification Script ===");

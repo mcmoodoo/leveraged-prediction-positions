@@ -10,8 +10,11 @@ contract DeployScript is Script {
     address constant POLYGON_CTF = 0x4D97DCd97eC945f40cF65F87097ACe5EA0476045;
     address constant POLYGON_CTF_EXCHANGE = 0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E;
     address constant USDC_MOCK = 0x2B188B402c07051982FA1b6aA942d6fc361e45B4;
+
     address constant MORPHO_BLUE_POLYGON = 0x1bF0c2541F820E775182832f06c0B7Fc27A25f67;
-    address constant ADAPTIVE_CURVE_IRM = 0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC;
+    address constant ADAPTIVE_CURVE_IRM = 0xe675A2161D4a6E2de2eeD70ac98EEBf257FBF0B0;
+
+    uint256 constant LLTV = 770000000000000000; // 77%
     
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
