@@ -20,6 +20,9 @@
 ## Deployment
 
 1. I first need to deploy the collateral token (wrapped ERC1155 of the above token ID)
+   ✅ [Success] Hash: 0x1c3f8969841563254acb71aec26d95cc8f7cef30ffe7bd0802dff5036e769705
+   Contract Address: 0x88CD3FFC11ec1cEFbB46b58E67DE61Af29242765
+
 2. The loan token would be the mocked USDC mUSD
    Mock USDC deployed on Polygon with 1_000_000 total supply and 6 decimal points for fractions
 
@@ -27,12 +30,15 @@
    Contract Address: 0xb1b52134F9cD0F3E84E5861bCb444d4dF2A1aC80
 
 3. Liquidation Loan-to-Value (LLTV) would be set at 77% for now: 770000000000000000
+
 4. The mock oracle should already be deployed
+
    - Let's add a mock oracle smart contract that complies with chainlink's aggregator v3 interface. The token pair in this case collateral/loan
+     ✅ [Success] Hash: 0x734ae5494159d7786b02bea84978d74b4b9831dbaafc83695037b6e7dc75c6d7
+     Contract Address: 0x73AcB25b42EC034083e6dcc5468c21bE5D239598
+
 5. I will re-use the Interest Rate Model contract at `address constant ADAPTIVE_CURVE_IRM = 0xe675A2161D4a6E2de2eeD70ac98EEBf257FBF0B0;`
 
 ## Prompt
 
-- I need an ERC-20 wrapper contract that will be able to hold ERC1155 tokens (specifically token id 33064224357523449786613480102704635026181428303479305990935387590344871823925 in the 1155 polymarket ctf contract deployed on polygon at 0x4D97DCd97eC945f40cF65F87097ACe5EA0476045)
-- I need a way to wrap and unwrap the ERC1155 CTF tokens.
-- place the above contract address and token id in .env and then load from it as you need.
+- Now, let's create a morpho blue market. We have all we need and in the above section `Deployment` there are all the smart contract addresses so fill those in the .env file if missing.

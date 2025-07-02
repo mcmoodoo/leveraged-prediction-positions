@@ -20,7 +20,7 @@ contract CTFWrapperScript is Script {
             ctfAddress,
             tokenId,
             "Wrapped CTF Token",
-            "wCTF"
+            "wCTFyes"
         );
 
         console.log("CTF Wrapper deployed at:", address(ctfWrapper));
