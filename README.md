@@ -32,3 +32,7 @@
 5. I will re-use the Interest Rate Model contract at `address constant ADAPTIVE_CURVE_IRM = 0xe675A2161D4a6E2de2eeD70ac98EEBf257FBF0B0;`
 
 ## Prompt
+
+- I need an ERC-20 wrapper contract that will be able to hold ERC1155 tokens (specifically token id 33064224357523449786613480102704635026181428303479305990935387590344871823925 in the 1155 polymarket ctf contract deployed on polygon at 0x4D97DCd97eC945f40cF65F87097ACe5EA0476045)
+- I need a way to wrap and unwrap the ERC1155 CTF tokens.
+- place the above contract address and token id in .env and then load from it as you need.
