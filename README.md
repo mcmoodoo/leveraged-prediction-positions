@@ -39,6 +39,24 @@
 
 5. I will re-use the Interest Rate Model contract at `address constant ADAPTIVE_CURVE_IRM = 0xe675A2161D4a6E2de2eeD70ac98EEBf257FBF0B0;`
 
-## Prompt
+== Logs ==
+Created Morpho Blue Market with:
+Morpho Blue: 0x1bF0c2541F820E775182832f06c0B7Fc27A25f67
+Market ID: 0x1b7b5655f23ab9e447fcebc6c805e86e230b6f212c1100da3568b2a43bd6aabf
+Market created successfully!
 
-- Now, let's create a morpho blue market. We have all we need and in the above section `Deployment` there are all the smart contract addresses so fill those in the .env file if missing.
+✅ Updated .env with all deployed contract addresses including Mock Oracle
+✅ Created IMorphoBlue.sol - Interface for Morpho Blue protocol
+✅ Created CreateMorphoMarket.s.sol - Script to create market with all parameters from .env
+✅ Created comprehensive test suite - 7 passing tests covering market creation
+
+The Morpho Blue market creation setup includes:
+
+- Loan Token: Mock USDC (0xb1b52134F9cD0F3E84E5861bCb444d4dF2A1aC80)
+- Collateral Token: CTF Wrapper (0x88CD3FFC11ec1cEFbB46b58E67DE61Af29242765)
+- Oracle: Mock Oracle (0x73AcB25b42EC034083e6dcc5468c21bE5D239598)
+- IRM: Adaptive Curve IRM (0xe675A2161D4a6E2de2eeD70ac98EEBf257FBF0B0)
+- LLTV: 77% (770000000000000000)
+
+The script calculates the market ID and creates the market on Morpho Blue. All tests pass, confirming the market creation logic
+works correctly.
