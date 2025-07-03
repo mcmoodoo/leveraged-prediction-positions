@@ -100,7 +100,13 @@ export function useMorphoTransactions() {
       address: CONTRACT_ADDRESSES.MORPHO_BLUE,
       abi: MORPHO_BLUE_ABI,
       functionName: 'supply',
-      args: [MARKET_PARAMS, assets, 0n, userAddress, userAddress],
+      args: [
+        [MARKET_PARAMS.loanToken, MARKET_PARAMS.collateralToken, MARKET_PARAMS.oracle, MARKET_PARAMS.irm, MARKET_PARAMS.lltv],
+        assets, 
+        0n, 
+        userAddress, 
+        userAddress
+      ],
     })
   }
 
@@ -110,7 +116,13 @@ export function useMorphoTransactions() {
       address: CONTRACT_ADDRESSES.MORPHO_BLUE,
       abi: MORPHO_BLUE_ABI,
       functionName: 'withdraw',
-      args: [MARKET_PARAMS, assets, 0n, userAddress, userAddress],
+      args: [
+        [MARKET_PARAMS.loanToken, MARKET_PARAMS.collateralToken, MARKET_PARAMS.oracle, MARKET_PARAMS.irm, MARKET_PARAMS.lltv],
+        assets, 
+        0n, 
+        userAddress, 
+        userAddress
+      ],
     })
   }
 
@@ -120,7 +132,13 @@ export function useMorphoTransactions() {
       address: CONTRACT_ADDRESSES.MORPHO_BLUE,
       abi: MORPHO_BLUE_ABI,
       functionName: 'borrow',
-      args: [MARKET_PARAMS, assets, 0n, userAddress, userAddress],
+      args: [
+        [MARKET_PARAMS.loanToken, MARKET_PARAMS.collateralToken, MARKET_PARAMS.oracle, MARKET_PARAMS.irm, MARKET_PARAMS.lltv],
+        assets, 
+        0n, 
+        userAddress, 
+        userAddress
+      ],
     })
   }
 
@@ -130,7 +148,13 @@ export function useMorphoTransactions() {
       address: CONTRACT_ADDRESSES.MORPHO_BLUE,
       abi: MORPHO_BLUE_ABI,
       functionName: 'repay',
-      args: [MARKET_PARAMS, assets, 0n, userAddress, '0x'],
+      args: [
+        [MARKET_PARAMS.loanToken, MARKET_PARAMS.collateralToken, MARKET_PARAMS.oracle, MARKET_PARAMS.irm, MARKET_PARAMS.lltv],
+        assets, 
+        0n, 
+        userAddress, 
+        '0x'
+      ],
     })
   }
 
@@ -140,7 +164,12 @@ export function useMorphoTransactions() {
       address: CONTRACT_ADDRESSES.MORPHO_BLUE,
       abi: MORPHO_BLUE_ABI,
       functionName: 'supplyCollateral',
-      args: [MARKET_PARAMS, assets, userAddress, '0x'],
+      args: [
+        [MARKET_PARAMS.loanToken, MARKET_PARAMS.collateralToken, MARKET_PARAMS.oracle, MARKET_PARAMS.irm, MARKET_PARAMS.lltv],
+        assets, 
+        userAddress, 
+        '0x'
+      ],
     })
   }
 
@@ -150,7 +179,12 @@ export function useMorphoTransactions() {
       address: CONTRACT_ADDRESSES.MORPHO_BLUE,
       abi: MORPHO_BLUE_ABI,
       functionName: 'withdrawCollateral',
-      args: [MARKET_PARAMS, assets, userAddress, userAddress],
+      args: [
+        [MARKET_PARAMS.loanToken, MARKET_PARAMS.collateralToken, MARKET_PARAMS.oracle, MARKET_PARAMS.irm, MARKET_PARAMS.lltv],
+        assets, 
+        userAddress, 
+        userAddress
+      ],
     })
   }
 
