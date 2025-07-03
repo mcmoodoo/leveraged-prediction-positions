@@ -14,8 +14,9 @@ export function BorrowForm() {
   const { approveMaxCTF, isPending: isApprovePending, isConfirming: isApproveConfirming } = useTokenTransactions()
 
   const needsApproval = ctfAllowance !== undefined && parseUnits(amount || '0', 18) > ctfAllowance
-  const collateralValue = position ? position[2] : 0n // collateral amount
-  const maxBorrow = collateralValue * 77n / 100n // 77% LTV
+  const collateralValue = position ? position[2] : 0n // collateral amount in 18 decimals
+  // Convert collateral (18 decimals) to USDC terms (6 decimals) assuming 1:1 price
+  const maxBorrow = collateralValue * 77n / 100n / BigInt(10**12) // 77% LTV, convert 18->6 decimals
 
   const handleBorrow = () => {
     if (!amount || !address) return

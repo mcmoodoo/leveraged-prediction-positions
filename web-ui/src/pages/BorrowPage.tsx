@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAccount } from 'wagmi'
 import { formatUnits, parseUnits } from 'viem'
 import { useMorphoTransactions, useTokenTransactions, useCTFBalance, useCTFAllowance, useUserPosition, useUSDCBalance } from '../hooks/useMorpho'
+import { DebugInfo } from '../components/DebugInfo'
 
 export function BorrowPage() {
   const [collateralAmount, setCollateralAmount] = useState('')
@@ -21,9 +22,10 @@ export function BorrowPage() {
   const hasRepayBalance = usdcBalance !== undefined && parseUnits(repayAmount || '0', 6) <= usdcBalance
 
   // Calculate max borrow based on collateral (77% LTV)
-  const collateralValue = position ? position[2] : 0n
-  const maxBorrow = collateralValue * 77n / 100n
-  const currentBorrow = position ? position[1] : 0n
+  const collateralValue = position ? position[2] : 0n // CTF collateral in 18 decimals
+  // Convert collateral to USDC terms (6 decimals) assuming 1:1 price, then apply 77% LTV
+  const maxBorrow = collateralValue * 77n / 100n / BigInt(10**12) // Convert 18->6 decimals
+  const currentBorrow = position ? position[1] : 0n // Already in 6 decimals
   const availableToBorrow = maxBorrow > currentBorrow ? maxBorrow - currentBorrow : 0n
 
   const handleSupplyCollateral = () => {
@@ -234,11 +236,11 @@ export function BorrowPage() {
             <div className="text-center">
               <p className="text-sm text-neutral-600 mb-1">Current LTV</p>
               <p className={`text-2xl font-bold ${
-                position[2] > 0n && (position[1] * 100n) / position[2] > 70n 
+                position[2] > 0n && (position[1] * BigInt(10**12) * 100n) / position[2] > 70n 
                   ? 'text-red-600' 
                   : 'text-emerald-600'
               }`}>
-                {position[2] > 0n ? ((position[1] * 100n) / position[2]).toString() : '0'}%
+                {position[2] > 0n ? ((position[1] * BigInt(10**12) * 100n) / position[2]).toString() : '0'}%
               </p>
             </div>
             
@@ -250,7 +252,7 @@ export function BorrowPage() {
             </div>
           </div>
 
-          {position[2] > 0n && (position[1] * 100n) / position[2] > 70n && (
+          {position[2] > 0n && (position[1] * BigInt(10**12) * 100n) / position[2] > 70n && (
             <div className="mt-6 bg-red-50 border border-red-200 p-4 rounded-lg">
               <p className="text-red-800 font-medium">⚠️ High Risk Position</p>
               <p className="text-red-700 text-sm mt-1">
@@ -260,6 +262,8 @@ export function BorrowPage() {
           )}
         </div>
       )}
+
+      <DebugInfo />
     </div>
   )
 }

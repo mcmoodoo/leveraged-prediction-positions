@@ -147,9 +147,9 @@ export function Dashboard() {
               <div className="flex justify-between items-center">
                 <span className="text-neutral-600">Current LTV:</span>
                 <span className={`font-bold ${
-                  (position[1] * 100n) / position[2] > 70n ? 'text-red-600' : 'text-emerald-600'
+                  position[2] > 0n && (position[1] * BigInt(10**12) * 100n) / position[2] > 70n ? 'text-red-600' : 'text-emerald-600'
                 }`}>
-                  {position[2] > 0n ? ((position[1] * 100n) / position[2]).toString() : '0'}%
+                  {position[2] > 0n ? ((position[1] * BigInt(10**12) * 100n) / position[2]).toString() : '0'}%
                 </span>
               </div>
             </div>
