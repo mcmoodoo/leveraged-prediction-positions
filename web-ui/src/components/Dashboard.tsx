@@ -1,6 +1,8 @@
 import { useAccount } from 'wagmi'
 import { formatUnits } from 'viem'
 import { useUserPosition, useMarketData, useUSDCBalance, useCTFBalance, useRawCTFBalance } from '../hooks/useMorpho'
+import { DebugInfo } from './DebugInfo'
+import { MarketValidation } from './MarketValidation'
 
 export function Dashboard() {
   const { address } = useAccount()
@@ -156,6 +158,9 @@ export function Dashboard() {
           </div>
         </div>
       )}
+
+      <DebugInfo />
+      <MarketValidation />
     </div>
   )
 }

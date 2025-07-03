@@ -3,6 +3,7 @@ import { useAccount } from 'wagmi'
 import { formatUnits, parseUnits } from 'viem'
 import { useMorphoTransactions, useTokenTransactions, useCTFBalance, useCTFAllowance, useUserPosition, useUSDCBalance } from '../hooks/useMorpho'
 import { DebugInfo } from '../components/DebugInfo'
+import { MarketValidation } from '../components/MarketValidation'
 
 export function BorrowPage() {
   const [collateralAmount, setCollateralAmount] = useState('')
@@ -264,6 +265,7 @@ export function BorrowPage() {
       )}
 
       <DebugInfo />
+      <MarketValidation />
     </div>
   )
 }

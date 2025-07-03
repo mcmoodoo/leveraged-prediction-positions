@@ -15,7 +15,9 @@ export function BorrowForm() {
 
   const needsApproval = ctfAllowance !== undefined && parseUnits(amount || '0', 18) > ctfAllowance
   const collateralValue = position ? position[2] : 0n // collateral amount in 18 decimals
-  // Convert collateral (18 decimals) to USDC terms (6 decimals) assuming 1:1 price
+  // Oracle price: 100000000 (8 decimals) = 1.00 USDC per CTF
+  // maxBorrow = (collateral_18_decimals * oracle_price_8_decimals * lltv_77%) / (10^18 * 10^8 * 100)
+  // Simplified for 1:1 price: collateral * 77% / 100% / 10^12 (convert 18->6 decimals)
   const maxBorrow = collateralValue * 77n / 100n / BigInt(10**12) // 77% LTV, convert 18->6 decimals
 
   const handleBorrow = () => {

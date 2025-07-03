@@ -22,6 +22,7 @@
 1. I first need to deploy the collateral token (wrapped ERC1155 of the above token ID)
    ✅ [Success] Hash: 0x1c3f8969841563254acb71aec26d95cc8f7cef30ffe7bd0802dff5036e769705
    Contract Address: 0x88CD3FFC11ec1cEFbB46b58E67DE61Af29242765
+   Redeployed the contract with 1:1000000 minting ratio: 0x067572C964b1500D2283547f162bcDdeBBDf091d
 
 2. The loan token would be the mocked USDC mUSD
    Mock USDC deployed on Polygon with 1_000_000 total supply and 6 decimal points for fractions
@@ -43,7 +44,10 @@
 Created Morpho Blue Market with:
 Morpho Blue: 0x1bF0c2541F820E775182832f06c0B7Fc27A25f67
 Market ID: 0x1b7b5655f23ab9e447fcebc6c805e86e230b6f212c1100da3568b2a43bd6aabf
-Market created successfully!
+
+- redeployed new market for 1:1000000 ratio: 0x6bc3691176fe68f81e25bb2fccf542061e4aecfe7614eac08ea1381b3741125c
+
+  Market created successfully!
 
 ✅ Updated .env with all deployed contract addresses including Mock Oracle
 ✅ Created IMorphoBlue.sol - Interface for Morpho Blue protocol
@@ -60,3 +64,7 @@ The Morpho Blue market creation setup includes:
 
 The script calculates the market ID and creates the market on Morpho Blue. All tests pass, confirming the market creation logic
 works correctly.
+
+# TODOs
+
+- in the wrap/unwrap section, when I first want to wrap for the first time, I gotta have a separate button to approve, not mixed up with "Wrap CTF tokens". At the first visit the user should be warned that he has not approvedForAll and needs to approve the operator (i.e. the wrapping contract) to act of his behalf.
