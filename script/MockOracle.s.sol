@@ -10,15 +10,13 @@ contract MockOracleScript is Script {
     function setUp() public {}
 
     function run() public {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        
         // Oracle configuration for CTF/USDC pair
         uint8 decimals = 8; // Standard for Chainlink price feeds
         string memory description = "CTF / USDC";
         uint256 version = 1;
-        int256 initialPrice = 100000000; // 1.00 USDC per CTF token (8 decimals)
+        int256 initialPrice = 100_000_000; // 1.00 USDC per CTF token (8 decimals)
 
-        vm.startBroadcast(deployerPrivateKey);
+        vm.startBroadcast();
 
         mockOracle = new MockOracle(
             decimals,

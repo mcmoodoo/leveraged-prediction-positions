@@ -34,7 +34,7 @@ contract CTFWrapper is ERC20, ERC1155Holder, Ownable {
             ""
         );
         
-        _mint(msg.sender, amount * 1000000);
+        _mint(msg.sender, amount);
         
         emit Wrapped(msg.sender, amount);
     }
@@ -49,7 +49,7 @@ contract CTFWrapper is ERC20, ERC1155Holder, Ownable {
             address(this),
             msg.sender,
             tokenId,
-            amount / 1000000,
+            amount,
             ""
         );
         
