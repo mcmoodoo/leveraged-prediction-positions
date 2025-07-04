@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAccount } from 'wagmi'
 import { formatUnits, parseUnits } from 'viem'
 import { useMorphoTransactions, useTokenTransactions, useUSDCBalance, useUSDCAllowance } from '../hooks/useMorpho'
+import { TOKEN_DECIMALS } from '../contracts/constants'
 
 export function SupplyForm() {
   const [amount, setAmount] = useState('')
@@ -12,8 +13,8 @@ export function SupplyForm() {
   const { supply, isPending: isSupplyPending, isConfirming: isSupplyConfirming } = useMorphoTransactions()
   const { approveMaxUSDC, isPending: isApprovePending, isConfirming: isApproveConfirming } = useTokenTransactions()
 
-  const needsApproval = allowance !== undefined && parseUnits(amount || '0', 6) > allowance
-  const hasBalance = balance !== undefined && parseUnits(amount || '0', 6) <= balance
+  const needsApproval = allowance !== undefined && parseUnits(amount || '0', TOKEN_DECIMALS.USDC) > allowance
+  const hasBalance = balance !== undefined && parseUnits(amount || '0', TOKEN_DECIMALS.USDC) <= balance
 
   const handleSupply = () => {
     if (!amount || !address) return
@@ -26,7 +27,7 @@ export function SupplyForm() {
 
   const setMaxAmount = () => {
     if (balance) {
-      setAmount(formatUnits(balance, 6))
+      setAmount(formatUnits(balance, TOKEN_DECIMALS.USDC))
     }
   }
 
@@ -56,7 +57,7 @@ export function SupplyForm() {
           </div>
           {balance && (
             <p className="text-sm text-neutral-600 mt-1">
-              Balance: {formatUnits(balance, 6)} USDC
+              Balance: {formatUnits(balance, TOKEN_DECIMALS.USDC)} USDC
             </p>
           )}
         </div>

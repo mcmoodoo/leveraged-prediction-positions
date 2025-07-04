@@ -65,6 +65,35 @@ The Morpho Blue market creation setup includes:
 The script calculates the market ID and creates the market on Morpho Blue. All tests pass, confirming the market creation logic
 works correctly.
 
-# TODOs
+## Deployment Order
 
-- in the wrap/unwrap section, when I first want to wrap for the first time, I gotta have a separate button to approve, not mixed up with "Wrap CTF tokens". At the first visit the user should be warned that he has not approvedForAll and needs to approve the operator (i.e. the wrapping contract) to act of his behalf.
+### 1. Deploy Mock Contracts (Independent)
+
+These contracts have no dependencies and can be deployed in any order:
+
+```bash
+# Deploy Mock USDC (lending asset)
+forge script script/MockUSDC.s.sol:MockUSDCScript --rpc-url $POLYGON_RPC --account chromion --broadcast
+
+# Deploy Mock Oracle (price feed for CTF/USDC)
+forge script script/MockOracle.s.sol:MockOracleScript --rpc-url $POLYGON_RPC --account chromion --broadcast
+
+# Deploy Mock PolyMarket CTF (ERC1155 tokens)
+forge script script/MockPolyMarketCTF.s.sol:MockPolyMarketCTFScript --rpc-url $POLYGON_RPC --account chromion --broadcast
+```
+
+### 2. Deploy CTF Wrapper (Depends on Mock PolyMarket CTF)
+
+```bash
+# Deploy CTF Wrapper for MockRecessionNoToken
+# Requires: MOCK_POLYMARKET_CTF_ADDRESS to be set in .env
+forge script script/RecessionNoCTFWrapper.s.sol:MockRecessionNoTokenWrapperScript --rpc-url $POLYGON_RPC --account chromion --broadcast
+```
+
+### 3. Create Morpho Market (Depends on All Above)
+
+```bash
+# Create Morpho Blue Market
+# Requires: MOCK_USDC_ADDRESS, CTF_WRAPPER_ADDRESS, MOCK_ORACLE_ADDRESS to be set in .env
+forge script script/CreateMorphoMarket.s.sol:CreateMorphoMarketScript --rpc-url $POLYGON_RPC --account chromion --broadcast
+```

@@ -1,6 +1,7 @@
 import { useAccount } from 'wagmi'
 import { formatUnits } from 'viem'
 import { useUserPosition } from '../hooks/useMorpho'
+import { TOKEN_DECIMALS } from '../contracts/constants'
 
 export function DebugInfo() {
   const { address } = useAccount()
@@ -10,7 +11,6 @@ export function DebugInfo() {
 
   const collateralValue = position[2] // CTF collateral in 18 decimals
   const borrowedValue = position[1] // USDC borrowed in 6 decimals
-  const supplyShares = position[0] // USDC supply shares in 6 decimals
   
   // Oracle: 100000000 (8 decimals) = 1.00 USDC per CTF
   // Max borrow = collateral * oracle_price * lltv / (10^18 * 10^8) * 10^6
@@ -24,13 +24,13 @@ export function DebugInfo() {
       <h4 className="font-medium text-yellow-800 mb-2">🔍 Debug Info - Decimal Analysis</h4>
       <div className="text-sm text-yellow-700 space-y-1">
         <p><strong>Position Data:</strong></p>
-        <p>• Supply Shares: {position[0].toString()} raw ({formatUnits(position[0], 6)} USDC)</p>
-        <p>• Borrow Shares: {position[1].toString()} raw ({formatUnits(position[1], 6)} USDC)</p>
-        <p>• Collateral: {position[2].toString()} raw ({formatUnits(position[2], 18)} CTF)</p>
+        <p>• Supply Shares: {position[0].toString()} raw ({formatUnits(position[0], TOKEN_DECIMALS.USDC)} USDC)</p>
+        <p>• Borrow Shares: {position[1].toString()} raw ({formatUnits(position[1], TOKEN_DECIMALS.USDC)} USDC)</p>
+        <p>• Collateral: {position[2].toString()} raw ({formatUnits(position[2], TOKEN_DECIMALS.CTF_WRAPPER)} CTF)</p>
         
         <p><strong>Calculations:</strong></p>
-        <p>• Max Borrow: {maxBorrow.toString()} raw ({formatUnits(maxBorrow, 6)} USDC)</p>
-        <p>• Available to Borrow: {availableToBorrow.toString()} raw ({formatUnits(availableToBorrow, 6)} USDC)</p>
+        <p>• Max Borrow: {maxBorrow.toString()} raw ({formatUnits(maxBorrow, TOKEN_DECIMALS.USDC)} USDC)</p>
+        <p>• Available to Borrow: {availableToBorrow.toString()} raw ({formatUnits(availableToBorrow, TOKEN_DECIMALS.USDC)} USDC)</p>
         <p>• Current LTV: {currentLTV.toString()}%</p>
         
         <p><strong>Decimal Info:</strong></p>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAccount } from 'wagmi'
 import { formatUnits, parseUnits } from 'viem'
 import { useMorphoTransactions, useTokenTransactions, useCTFBalance, useCTFAllowance } from '../hooks/useMorpho'
+import { TOKEN_DECIMALS } from '../contracts/constants'
 
 export function CollateralForm() {
   const [amount, setAmount] = useState('')
@@ -13,8 +14,8 @@ export function CollateralForm() {
   const { supplyCollateral, withdrawCollateral, isPending: isMorphoPending, isConfirming: isMorphoConfirming } = useMorphoTransactions()
   const { approveMaxCTF, isPending: isApprovePending, isConfirming: isApproveConfirming } = useTokenTransactions()
 
-  const needsApproval = isSupplying && allowance !== undefined && parseUnits(amount || '0', 18) > allowance
-  const hasBalance = balance !== undefined && parseUnits(amount || '0', 18) <= balance
+  const needsApproval = isSupplying && allowance !== undefined && parseUnits(amount || '0', TOKEN_DECIMALS.CTF_WRAPPER) > allowance
+  const hasBalance = balance !== undefined && parseUnits(amount || '0', TOKEN_DECIMALS.CTF_WRAPPER) <= balance
 
   const handleSupplyCollateral = () => {
     if (!amount || !address) return
@@ -32,7 +33,7 @@ export function CollateralForm() {
 
   const setMaxAmount = () => {
     if (balance) {
-      setAmount(formatUnits(balance, 18))
+      setAmount(formatUnits(balance, TOKEN_DECIMALS.CTF_WRAPPER))
     }
   }
 
@@ -83,7 +84,7 @@ export function CollateralForm() {
           </div>
           {balance && (
             <p className="text-sm text-neutral-600 mt-1">
-              Balance: {formatUnits(balance, 18)} wCTF
+              Balance: {formatUnits(balance, TOKEN_DECIMALS.CTF_WRAPPER)} wCTF
             </p>
           )}
         </div>

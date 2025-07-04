@@ -16,7 +16,7 @@ export function BorrowPage() {
   const { data: ctfAllowance } = useCTFAllowance(address)
   const { data: position } = useUserPosition(address)
   const { supplyCollateral, borrow, repay, isPending: isMorphoPending, isConfirming: isMorphoConfirming } = useMorphoTransactions()
-  const { approveMaxCTF, approveMaxUSDC, isPending: isApprovePending, isConfirming: isApproveConfirming } = useTokenTransactions()
+  const { approveMaxCTF, isPending: isApprovePending, isConfirming: isApproveConfirming } = useTokenTransactions()
 
   const collateralNeedsApproval = ctfAllowance !== undefined && parseUnits(collateralAmount || '0', 18) > ctfAllowance
   const hasCollateralBalance = ctfBalance !== undefined && parseUnits(collateralAmount || '0', 18) <= ctfBalance
@@ -48,9 +48,6 @@ export function BorrowPage() {
     approveMaxCTF()
   }
 
-  const handleApproveRepay = () => {
-    approveMaxUSDC()
-  }
 
   if (!address) {
     return (

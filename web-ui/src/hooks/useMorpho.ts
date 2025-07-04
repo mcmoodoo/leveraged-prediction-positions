@@ -1,7 +1,8 @@
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { parseUnits, formatUnits } from 'viem'
+import { parseUnits } from 'viem'
 import { CONTRACT_ADDRESSES, MARKET_CONFIG } from '../contracts/addresses'
 import { MORPHO_BLUE_ABI, ERC20_ABI, CTF_WRAPPER_ABI, ERC1155_ABI } from '../contracts/abis'
+import { TOKEN_DECIMALS } from '../contracts/constants'
 
 const MARKET_PARAMS = {
   loanToken: CONTRACT_ADDRESSES.MOCK_USDC,
@@ -52,7 +53,7 @@ export function useCTFBalance(userAddress?: `0x${string}`) {
 
 export function useRawCTFBalance(userAddress?: `0x${string}`) {
   return useReadContract({
-    address: CONTRACT_ADDRESSES.POLYGON_CTF,
+    address: CONTRACT_ADDRESSES.MOCK_POLYMARKET_CTF,
     abi: ERC1155_ABI,
     functionName: 'balanceOf',
     args: [userAddress!, BigInt(MARKET_CONFIG.CTF_TOKEN_ID)],
@@ -82,7 +83,7 @@ export function useCTFAllowance(userAddress?: `0x${string}`) {
 
 export function useRawCTFApproval(userAddress?: `0x${string}`) {
   return useReadContract({
-    address: CONTRACT_ADDRESSES.POLYGON_CTF,
+    address: CONTRACT_ADDRESSES.MOCK_POLYMARKET_CTF,
     abi: ERC1155_ABI,
     functionName: 'isApprovedForAll',
     args: [userAddress!, CONTRACT_ADDRESSES.CTF_WRAPPER],
@@ -95,13 +96,13 @@ export function useMorphoTransactions() {
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
 
   const supply = (amount: string, userAddress: `0x${string}`) => {
-    const assets = parseUnits(amount, 6) // USDC has 6 decimals
+    const assets = parseUnits(amount, TOKEN_DECIMALS.USDC)
     writeContract({
       address: CONTRACT_ADDRESSES.MORPHO_BLUE,
       abi: MORPHO_BLUE_ABI,
       functionName: 'supply',
       args: [
-        [MARKET_PARAMS.loanToken, MARKET_PARAMS.collateralToken, MARKET_PARAMS.oracle, MARKET_PARAMS.irm, MARKET_PARAMS.lltv],
+        MARKET_PARAMS,
         assets, 
         0n, 
         userAddress, 
@@ -111,13 +112,13 @@ export function useMorphoTransactions() {
   }
 
   const withdraw = (amount: string, userAddress: `0x${string}`) => {
-    const assets = parseUnits(amount, 6)
+    const assets = parseUnits(amount, TOKEN_DECIMALS.USDC)
     writeContract({
       address: CONTRACT_ADDRESSES.MORPHO_BLUE,
       abi: MORPHO_BLUE_ABI,
       functionName: 'withdraw',
       args: [
-        [MARKET_PARAMS.loanToken, MARKET_PARAMS.collateralToken, MARKET_PARAMS.oracle, MARKET_PARAMS.irm, MARKET_PARAMS.lltv],
+        MARKET_PARAMS,
         assets, 
         0n, 
         userAddress, 
@@ -127,13 +128,13 @@ export function useMorphoTransactions() {
   }
 
   const borrow = (amount: string, userAddress: `0x${string}`) => {
-    const assets = parseUnits(amount, 6)
+    const assets = parseUnits(amount, TOKEN_DECIMALS.USDC)
     writeContract({
       address: CONTRACT_ADDRESSES.MORPHO_BLUE,
       abi: MORPHO_BLUE_ABI,
       functionName: 'borrow',
       args: [
-        [MARKET_PARAMS.loanToken, MARKET_PARAMS.collateralToken, MARKET_PARAMS.oracle, MARKET_PARAMS.irm, MARKET_PARAMS.lltv],
+        MARKET_PARAMS,
         assets, 
         0n, 
         userAddress, 
@@ -143,13 +144,13 @@ export function useMorphoTransactions() {
   }
 
   const repay = (amount: string, userAddress: `0x${string}`) => {
-    const assets = parseUnits(amount, 6)
+    const assets = parseUnits(amount, TOKEN_DECIMALS.USDC)
     writeContract({
       address: CONTRACT_ADDRESSES.MORPHO_BLUE,
       abi: MORPHO_BLUE_ABI,
       functionName: 'repay',
       args: [
-        [MARKET_PARAMS.loanToken, MARKET_PARAMS.collateralToken, MARKET_PARAMS.oracle, MARKET_PARAMS.irm, MARKET_PARAMS.lltv],
+        MARKET_PARAMS,
         assets, 
         0n, 
         userAddress, 
@@ -159,13 +160,13 @@ export function useMorphoTransactions() {
   }
 
   const supplyCollateral = (amount: string, userAddress: `0x${string}`) => {
-    const assets = parseUnits(amount, 18) // CTF tokens have 18 decimals
+    const assets = parseUnits(amount, TOKEN_DECIMALS.CTF_WRAPPER)
     writeContract({
       address: CONTRACT_ADDRESSES.MORPHO_BLUE,
       abi: MORPHO_BLUE_ABI,
       functionName: 'supplyCollateral',
       args: [
-        [MARKET_PARAMS.loanToken, MARKET_PARAMS.collateralToken, MARKET_PARAMS.oracle, MARKET_PARAMS.irm, MARKET_PARAMS.lltv],
+        MARKET_PARAMS,
         assets, 
         userAddress, 
         '0x'
@@ -174,13 +175,13 @@ export function useMorphoTransactions() {
   }
 
   const withdrawCollateral = (amount: string, userAddress: `0x${string}`) => {
-    const assets = parseUnits(amount, 18)
+    const assets = parseUnits(amount, TOKEN_DECIMALS.CTF_WRAPPER)
     writeContract({
       address: CONTRACT_ADDRESSES.MORPHO_BLUE,
       abi: MORPHO_BLUE_ABI,
       functionName: 'withdrawCollateral',
       args: [
-        [MARKET_PARAMS.loanToken, MARKET_PARAMS.collateralToken, MARKET_PARAMS.oracle, MARKET_PARAMS.irm, MARKET_PARAMS.lltv],
+        MARKET_PARAMS,
         assets, 
         userAddress, 
         userAddress
@@ -208,7 +209,7 @@ export function useTokenTransactions() {
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
 
   const approveUSDC = (amount: string) => {
-    const value = parseUnits(amount, 6)
+    const value = parseUnits(amount, TOKEN_DECIMALS.USDC)
     writeContract({
       address: CONTRACT_ADDRESSES.MOCK_USDC,
       abi: ERC20_ABI,
@@ -227,7 +228,7 @@ export function useTokenTransactions() {
   }
 
   const approveCTF = (amount: string) => {
-    const value = parseUnits(amount, 18)
+    const value = parseUnits(amount, TOKEN_DECIMALS.CTF_WRAPPER)
     writeContract({
       address: CONTRACT_ADDRESSES.CTF_WRAPPER,
       abi: ERC20_ABI,
@@ -247,7 +248,7 @@ export function useTokenTransactions() {
 
   const approveRawCTF = () => {
     writeContract({
-      address: CONTRACT_ADDRESSES.POLYGON_CTF,
+      address: CONTRACT_ADDRESSES.MOCK_POLYMARKET_CTF,
       abi: ERC1155_ABI,
       functionName: 'setApprovalForAll',
       args: [CONTRACT_ADDRESSES.CTF_WRAPPER, true],
@@ -255,7 +256,7 @@ export function useTokenTransactions() {
   }
 
   const wrapCTF = (amount: string) => {
-    const value = parseUnits(amount, 18)
+    const value = BigInt(amount) // ERC1155 tokens don't have decimals
     writeContract({
       address: CONTRACT_ADDRESSES.CTF_WRAPPER,
       abi: CTF_WRAPPER_ABI,
@@ -265,7 +266,7 @@ export function useTokenTransactions() {
   }
 
   const unwrapCTF = (amount: string) => {
-    const value = parseUnits(amount, 18)
+    const value = parseUnits(amount, TOKEN_DECIMALS.CTF_WRAPPER)
     writeContract({
       address: CONTRACT_ADDRESSES.CTF_WRAPPER,
       abi: CTF_WRAPPER_ABI,

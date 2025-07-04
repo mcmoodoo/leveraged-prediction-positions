@@ -8,12 +8,10 @@ contract CreateMorphoMarketScript is Script {
     function setUp() public {}
 
     function run() public {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        
         // Load addresses from environment
         address morphoBlue = vm.envAddress("MORPHO_BLUE_ADDRESS");
         address loanToken = vm.envAddress("MOCK_USDC_ADDRESS");
-        address collateralToken = vm.envAddress("CTF_WRAPPER_ADDRESS");
+        address collateralToken = vm.envAddress("RECESSION_NO_WRAPPER_ADDRESS");
         address oracle = vm.envAddress("MOCK_ORACLE_ADDRESS");
         address irm = vm.envAddress("ADAPTIVE_CURVE_IRM_ADDRESS");
         uint256 lltv = vm.envUint("LLTV");
@@ -38,8 +36,22 @@ contract CreateMorphoMarketScript is Script {
         bytes32 marketId = keccak256(abi.encode(marketParams));
         console.log("Market ID:");
         console.logBytes32(marketId);
+        
+        // Update MARKET_ID in .env file
+        string[] memory sedCmd = new string[](4);
+        sedCmd[0] = "sed";
+        sedCmd[1] = "-i";
+        sedCmd[2] = "/^MARKET_ID=/d";
+        sedCmd[3] = ".env";
+        vm.ffi(sedCmd);
+        
+        string[] memory echoCmd = new string[](3);
+        echoCmd[0] = "sh";
+        echoCmd[1] = "-c";
+        echoCmd[2] = string(abi.encodePacked("echo 'MARKET_ID=0x", vm.toString(marketId), "' >> .env"));
+        vm.ffi(echoCmd);
 
-        vm.startBroadcast(deployerPrivateKey);
+        vm.startBroadcast();
 
         IMorphoBlue(morphoBlue).createMarket(marketParams);
 

@@ -1,6 +1,7 @@
 import { useAccount } from 'wagmi'
 import { formatUnits } from 'viem'
 import { useUserPosition, useMarketData, useUSDCBalance, useCTFBalance, useRawCTFBalance } from '../hooks/useMorpho'
+import { TOKEN_DECIMALS } from '../contracts/constants'
 import { DebugInfo } from './DebugInfo'
 import { MarketValidation } from './MarketValidation'
 
@@ -28,7 +29,7 @@ export function Dashboard() {
         <div className="bg-white rounded-xl p-6 shadow-soft border border-neutral-200">
           <h3 className="text-sm font-medium text-neutral-600 mb-2">USDC Balance</h3>
           <p className="text-2xl font-bold text-neutral-900">
-            {usdcBalance ? formatUnits(usdcBalance, 6) : '0'}
+            {usdcBalance !== undefined ? formatUnits(usdcBalance, TOKEN_DECIMALS.USDC) : '...'}
           </p>
           <p className="text-xs text-neutral-500 mt-1">Mock USDC</p>
         </div>
@@ -36,7 +37,7 @@ export function Dashboard() {
         <div className="bg-white rounded-xl p-6 shadow-soft border border-neutral-200">
           <h3 className="text-sm font-medium text-neutral-600 mb-2">Wrapped CTF</h3>
           <p className="text-2xl font-bold text-neutral-900">
-            {ctfBalance ? formatUnits(ctfBalance, 18) : '0'}
+            {ctfBalance !== undefined ? formatUnits(ctfBalance, TOKEN_DECIMALS.CTF_WRAPPER) : '...'}
           </p>
           <p className="text-xs text-neutral-500 mt-1">ERC20 CTF Tokens</p>
         </div>
@@ -44,7 +45,7 @@ export function Dashboard() {
         <div className="bg-white rounded-xl p-6 shadow-soft border border-neutral-200">
           <h3 className="text-sm font-medium text-neutral-600 mb-2">Raw CTF</h3>
           <p className="text-2xl font-bold text-neutral-900">
-            {rawCtfBalance ? formatUnits(rawCtfBalance, 18) : '0'}
+            {rawCtfBalance !== undefined ? rawCtfBalance.toString() : '...'}
           </p>
           <p className="text-xs text-neutral-500 mt-1">ERC1155 CTF Tokens</p>
         </div>
@@ -59,23 +60,23 @@ export function Dashboard() {
             <div>
               <h4 className="text-sm font-medium text-neutral-600 mb-2">Supplied</h4>
               <p className="text-xl font-bold text-emerald-600">
-                {formatUnits(position[0], 6)} USDC
+                {formatUnits(position[0], TOKEN_DECIMALS.USDC)} USDC
               </p>
-              <p className="text-xs text-neutral-500 mt-1">Supply Shares: {formatUnits(position[0], 6)}</p>
+              <p className="text-xs text-neutral-500 mt-1">Supply Shares: {formatUnits(position[0], TOKEN_DECIMALS.USDC)}</p>
             </div>
 
             <div>
               <h4 className="text-sm font-medium text-neutral-600 mb-2">Borrowed</h4>
               <p className="text-xl font-bold text-burnt-orange-600">
-                {formatUnits(position[1], 6)} USDC
+                {formatUnits(position[1], TOKEN_DECIMALS.USDC)} USDC
               </p>
-              <p className="text-xs text-neutral-500 mt-1">Borrow Shares: {formatUnits(position[1], 6)}</p>
+              <p className="text-xs text-neutral-500 mt-1">Borrow Shares: {formatUnits(position[1], TOKEN_DECIMALS.USDC)}</p>
             </div>
 
             <div>
               <h4 className="text-sm font-medium text-neutral-600 mb-2">Collateral</h4>
               <p className="text-xl font-bold text-navy-600">
-                {formatUnits(position[2], 18)} wCTF
+                {formatUnits(position[2], TOKEN_DECIMALS.CTF_WRAPPER)} wCTF
               </p>
               <p className="text-xs text-neutral-500 mt-1">Collateral Value</p>
             </div>
@@ -94,14 +95,14 @@ export function Dashboard() {
             <div>
               <h4 className="text-sm font-medium text-neutral-600 mb-2">Total Supply</h4>
               <p className="text-lg font-bold text-emerald-600">
-                {formatUnits(market[0], 6)} USDC
+                {formatUnits(market[0], TOKEN_DECIMALS.USDC)} USDC
               </p>
             </div>
 
             <div>
               <h4 className="text-sm font-medium text-neutral-600 mb-2">Total Borrowed</h4>
               <p className="text-lg font-bold text-burnt-orange-600">
-                {formatUnits(market[2], 6)} USDC
+                {formatUnits(market[2], TOKEN_DECIMALS.USDC)} USDC
               </p>
             </div>
 
@@ -132,12 +133,12 @@ export function Dashboard() {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-neutral-600">Collateral Value:</span>
-              <span className="font-medium">{formatUnits(position[2], 18)} wCTF</span>
+              <span className="font-medium">{formatUnits(position[2], TOKEN_DECIMALS.CTF_WRAPPER)} wCTF</span>
             </div>
             
             <div className="flex justify-between">
               <span className="text-neutral-600">Borrowed Value:</span>
-              <span className="font-medium">{formatUnits(position[1], 6)} USDC</span>
+              <span className="font-medium">{formatUnits(position[1], TOKEN_DECIMALS.USDC)} USDC</span>
             </div>
             
             <div className="flex justify-between">

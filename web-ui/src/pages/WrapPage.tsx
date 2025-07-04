@@ -3,6 +3,7 @@ import { useAccount } from 'wagmi'
 import { formatUnits, parseUnits } from 'viem'
 import { useTokenTransactions, useRawCTFBalance, useCTFBalance, useRawCTFApproval } from '../hooks/useMorpho'
 import { MARKET_CONFIG } from '../contracts/addresses'
+import { TOKEN_DECIMALS } from '../contracts/constants'
 
 export function WrapPage() {
   const [amount, setAmount] = useState('')
@@ -16,7 +17,7 @@ export function WrapPage() {
 
   const needsApproval = isWrapping && isApproved !== undefined && !isApproved
   const balance = isWrapping ? rawBalance : wrappedBalance
-  const hasBalance = balance !== undefined && parseUnits(amount || '0', 18) <= balance
+  const hasBalance = balance !== undefined && parseUnits(amount || '0', TOKEN_DECIMALS.RAW_CTF) <= balance
 
   const handleWrap = () => {
     if (!amount) return
@@ -34,7 +35,7 @@ export function WrapPage() {
 
   const setMaxAmount = () => {
     if (balance) {
-      setAmount(formatUnits(balance, 18))
+      setAmount(formatUnits(balance, TOKEN_DECIMALS.RAW_CTF))
     }
   }
 
@@ -169,7 +170,7 @@ export function WrapPage() {
                   <p className="text-xs text-neutral-600">Original prediction tokens</p>
                 </div>
                 <p className="text-lg font-bold text-neutral-900">
-                  {rawBalance ? formatUnits(rawBalance, 18) : '0'}
+                  {rawBalance ? rawBalance.toString() : '0'}
                 </p>
               </div>
               
@@ -179,7 +180,7 @@ export function WrapPage() {
                   <p className="text-xs text-neutral-600">DeFi-compatible tokens</p>
                 </div>
                 <p className="text-lg font-bold text-neutral-900">
-                  {wrappedBalance ? formatUnits(wrappedBalance, 18) : '0'}
+                  {wrappedBalance ? formatUnits(wrappedBalance, TOKEN_DECIMALS.CTF_WRAPPER) : '0'}
                 </p>
               </div>
             </div>
