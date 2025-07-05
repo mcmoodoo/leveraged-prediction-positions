@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -7,93 +7,84 @@ interface AggregatorV3Interface {
     function decimals() external view returns (uint8);
     function description() external view returns (string memory);
     function version() external view returns (uint256);
-    function getRoundData(uint80 _roundId)
-        external
-        view
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        );
-    function latestRoundData()
-        external
-        view
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        );
+    function getRoundData(uint80 _roundId) external view returns (
+        uint80 roundId,
+        int256 answer,
+        uint256 startedAt,
+        uint256 updatedAt,
+        uint80 answeredInRound
+    );
+    function latestRoundData() external view returns (
+        uint80 roundId,
+        int256 answer,
+        uint256 startedAt,
+        uint256 updatedAt,
+        uint80 answeredInRound
+    );
 }
 
 contract MockOracle is AggregatorV3Interface, Ownable {
+    uint8 private _decimals;
+    string private _description;
+    uint256 private _version;
+    
     struct RoundData {
         int256 answer;
         uint256 startedAt;
         uint256 updatedAt;
         uint80 answeredInRound;
     }
+    
+    mapping(uint80 => RoundData) private rounds;
+    uint80 private currentRoundId;
+    
+    event AnswerUpdated(int256 indexed current, uint256 indexed roundId, uint256 updatedAt);
+    event NewRound(uint256 indexed roundId, address indexed startedBy, uint256 startedAt);
 
-    uint8 private _decimals;
-    string private _description;
-    uint256 private _version;
-    uint80 private _currentRoundId;
-    
-    mapping(uint80 => RoundData) private _rounds;
-    
-    event PriceUpdated(uint80 indexed roundId, int256 answer, uint256 timestamp);
-    
     constructor(
-        uint8 decimals_,
-        string memory description_,
-        uint256 version_,
-        int256 initialPrice
+        uint8 _dec,
+        string memory _desc,
+        uint256 _ver,
+        int256 _initialAnswer
     ) Ownable(msg.sender) {
-        _decimals = decimals_;
-        _description = description_;
-        _version = version_;
-        _currentRoundId = 1;
+        _decimals = _dec;
+        _description = _desc;
+        _version = _ver;
+        currentRoundId = 1;
         
-        _rounds[_currentRoundId] = RoundData({
-            answer: initialPrice,
+        rounds[currentRoundId] = RoundData({
+            answer: _initialAnswer,
             startedAt: block.timestamp,
             updatedAt: block.timestamp,
-            answeredInRound: _currentRoundId
+            answeredInRound: currentRoundId
         });
         
-        emit PriceUpdated(_currentRoundId, initialPrice, block.timestamp);
+        emit NewRound(currentRoundId, msg.sender, block.timestamp);
+        emit AnswerUpdated(_initialAnswer, currentRoundId, block.timestamp);
     }
-    
+
     function decimals() external view override returns (uint8) {
         return _decimals;
     }
-    
+
     function description() external view override returns (string memory) {
         return _description;
     }
-    
+
     function version() external view override returns (uint256) {
         return _version;
     }
-    
-    function getRoundData(uint80 _roundId)
-        external
-        view
-        override
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        )
-    {
-        require(_roundId <= _currentRoundId && _roundId > 0, "Invalid round ID");
+
+    function getRoundData(uint80 _roundId) external view override returns (
+        uint80 roundId,
+        int256 answer,
+        uint256 startedAt,
+        uint256 updatedAt,
+        uint80 answeredInRound
+    ) {
+        require(rounds[_roundId].updatedAt > 0, "No data present");
         
-        RoundData memory round = _rounds[_roundId];
+        RoundData memory round = rounds[_roundId];
         return (
             _roundId,
             round.answer,
@@ -102,70 +93,43 @@ contract MockOracle is AggregatorV3Interface, Ownable {
             round.answeredInRound
         );
     }
-    
-    function latestRoundData()
-        external
-        view
-        override
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        )
-    {
-        RoundData memory round = _rounds[_currentRoundId];
+
+    function latestRoundData() external view override returns (
+        uint80 roundId,
+        int256 answer,
+        uint256 startedAt,
+        uint256 updatedAt,
+        uint80 answeredInRound
+    ) {
+        RoundData memory round = rounds[currentRoundId];
         return (
-            _currentRoundId,
+            currentRoundId,
             round.answer,
             round.startedAt,
             round.updatedAt,
             round.answeredInRound
         );
     }
-    
-    function updatePrice(int256 newPrice) external onlyOwner {
-        _currentRoundId++;
+
+    function updateAnswer(int256 _answer) external onlyOwner {
+        currentRoundId++;
         
-        _rounds[_currentRoundId] = RoundData({
-            answer: newPrice,
+        rounds[currentRoundId] = RoundData({
+            answer: _answer,
             startedAt: block.timestamp,
             updatedAt: block.timestamp,
-            answeredInRound: _currentRoundId
+            answeredInRound: currentRoundId
         });
         
-        emit PriceUpdated(_currentRoundId, newPrice, block.timestamp);
+        emit NewRound(currentRoundId, msg.sender, block.timestamp);
+        emit AnswerUpdated(_answer, currentRoundId, block.timestamp);
     }
-    
-    function updatePriceWithTimestamp(int256 newPrice, uint256 timestamp) external onlyOwner {
-        require(timestamp <= block.timestamp, "Timestamp cannot be in the future");
-        
-        _currentRoundId++;
-        
-        _rounds[_currentRoundId] = RoundData({
-            answer: newPrice,
-            startedAt: timestamp,
-            updatedAt: timestamp,
-            answeredInRound: _currentRoundId
-        });
-        
-        emit PriceUpdated(_currentRoundId, newPrice, timestamp);
-    }
-    
-    function setDecimals(uint8 newDecimals) external onlyOwner {
-        _decimals = newDecimals;
-    }
-    
-    function setDescription(string memory newDescription) external onlyOwner {
-        _description = newDescription;
-    }
-    
+
     function getCurrentRoundId() external view returns (uint80) {
-        return _currentRoundId;
+        return currentRoundId;
     }
-    
-    function getLatestPrice() external view returns (int256) {
-        return _rounds[_currentRoundId].answer;
+
+    function getLatestAnswer() external view returns (int256) {
+        return rounds[currentRoundId].answer;
     }
 }
