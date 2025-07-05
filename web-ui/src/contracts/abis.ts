@@ -165,7 +165,7 @@ export const MORPHO_BLUE_ABI = [
       { name: '_assets', type: 'uint256' },
       { name: '_shares', type: 'uint256' },
       { name: '_onBehalf', type: 'address' },
-      { name: '_receiver', type: 'address' },
+      { name: '_data', type: 'bytes' },
     ],
     name: 'supply',
     outputs: [

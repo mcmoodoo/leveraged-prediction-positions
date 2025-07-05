@@ -91,6 +91,7 @@ export function MarketValidation() {
         <p>• Expected: {MARKET_IDS.MORPHO_MARKET}</p>
         <p>• Calculated: {calculatedMarketId || 'Error calculating market ID'}</p>
         <p>• Match: {calculatedMarketId && calculatedMarketId === MARKET_IDS.MORPHO_MARKET ? '✅ YES' : '❌ NO'}</p>
+        <p>• Using calculated ID in transactions: ✅ YES</p>
         
         <p><strong>Market Data:</strong></p>
         {marketData ? (

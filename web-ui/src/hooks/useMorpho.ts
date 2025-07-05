@@ -1,6 +1,6 @@
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { parseUnits } from 'viem'
-import { CONTRACT_ADDRESSES, TOKEN_IDS, MARKET_IDS, CONFIG } from '../contracts/constants'
+import { parseUnits, keccak256, encodeAbiParameters, parseAbiParameters, toHex } from 'viem'
+import { CONTRACT_ADDRESSES, TOKEN_IDS, CONFIG } from '../contracts/constants'
 import { MORPHO_BLUE_ABI, ERC20_ABI, CTF_WRAPPER_ABI, ERC1155_ABI } from '../contracts/abis'
 import { TOKEN_DECIMALS } from '../contracts/constants'
 
@@ -12,12 +12,26 @@ const MARKET_PARAMS = {
   lltv: BigInt(CONFIG.LLTV),
 }
 
+// Calculate the correct market ID from parameters
+const CALCULATED_MARKET_ID = keccak256(
+  encodeAbiParameters(
+    parseAbiParameters('address,address,address,address,uint256'),
+    [
+      MARKET_PARAMS.loanToken,
+      MARKET_PARAMS.collateralToken,
+      MARKET_PARAMS.oracle,
+      MARKET_PARAMS.irm,
+      MARKET_PARAMS.lltv
+    ]
+  )
+)
+
 export function useUserPosition(userAddress?: `0x${string}`) {
   return useReadContract({
     address: CONTRACT_ADDRESSES.MORPHO_BLUE,
     abi: MORPHO_BLUE_ABI,
     functionName: 'position',
-    args: [MARKET_IDS.MORPHO_MARKET as `0x${string}`, userAddress!],
+    args: [CALCULATED_MARKET_ID, userAddress!],
     query: { enabled: !!userAddress },
   })
 }
@@ -27,7 +41,7 @@ export function useMarketData() {
     address: CONTRACT_ADDRESSES.MORPHO_BLUE,
     abi: MORPHO_BLUE_ABI,
     functionName: 'market',
-    args: [MARKET_IDS.MORPHO_MARKET as `0x${string}`],
+    args: [CALCULATED_MARKET_ID],
   })
 }
 
@@ -95,9 +109,28 @@ export function useMorphoTransactions() {
   const { writeContract, data: hash, isPending, error } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
 
+  // Debug error state
+  if (error) {
+    console.error('useMorphoTransactions error:', error)
+  }
+
   const supply = (amount: string, userAddress: `0x${string}`) => {
+    console.log('supply function called with:', { amount, userAddress })
     const assets = parseUnits(amount, TOKEN_DECIMALS.USDC)
-    writeContract({
+    console.log('parsed assets:', assets.toString())
+    console.log('MARKET_PARAMS:', MARKET_PARAMS)
+    console.log('Individual MARKET_PARAMS:')
+    console.log('  loanToken:', MARKET_PARAMS.loanToken)
+    console.log('  collateralToken:', MARKET_PARAMS.collateralToken)
+    console.log('  oracle:', MARKET_PARAMS.oracle)
+    console.log('  irm:', MARKET_PARAMS.irm)
+    console.log('  lltv:', MARKET_PARAMS.lltv)
+    console.log('CONTRACT_ADDRESSES.MORPHO_BLUE:', CONTRACT_ADDRESSES.MORPHO_BLUE)
+    
+    const emptyBytes = toHex('')
+    console.log('emptyBytes value:', emptyBytes)
+    
+    const contractCall = {
       address: CONTRACT_ADDRESSES.MORPHO_BLUE,
       abi: MORPHO_BLUE_ABI,
       functionName: 'supply',
@@ -106,9 +139,17 @@ export function useMorphoTransactions() {
         assets, 
         0n, 
         userAddress, 
-        userAddress
+        emptyBytes
       ],
-    })
+    }
+    console.log('writeContract call:', contractCall)
+    
+    try {
+      writeContract(contractCall)
+      console.log('writeContract called successfully')
+    } catch (error) {
+      console.error('Error calling writeContract:', error)
+    }
   }
 
   const withdraw = (amount: string, userAddress: `0x${string}`) => {
@@ -154,7 +195,7 @@ export function useMorphoTransactions() {
         assets, 
         0n, 
         userAddress, 
-        '0x'
+        toHex('')
       ],
     })
   }
@@ -169,7 +210,7 @@ export function useMorphoTransactions() {
         MARKET_PARAMS,
         assets, 
         userAddress, 
-        '0x'
+        toHex('')
       ],
     })
   }

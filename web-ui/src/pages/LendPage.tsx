@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { useAccount } from 'wagmi'
 import { formatUnits, parseUnits } from 'viem'
 import { useMorphoTransactions, useTokenTransactions, useUSDCBalance, useUSDCAllowance, useUserPosition } from '../hooks/useMorpho'
+import { MarketValidation } from '../components/MarketValidation'
+import { CONTRACT_ADDRESSES, CONFIG, TOKEN_DECIMALS } from '../contracts/constants'
+import { keccak256, encodeAbiParameters, parseAbiParameters } from 'viem'
 
 export function LendPage() {
   const [supplyAmount, setSupplyAmount] = useState('')
@@ -14,12 +17,41 @@ export function LendPage() {
   const { supply, withdraw, isPending: isMorphoPending, isConfirming: isMorphoConfirming } = useMorphoTransactions()
   const { approveMaxUSDC, isPending: isApprovePending, isConfirming: isApproveConfirming } = useTokenTransactions()
 
+  // Debug info - calculate the exact parameters that will be passed
+  const MARKET_PARAMS = {
+    loanToken: CONTRACT_ADDRESSES.MOCK_USDC,
+    collateralToken: CONTRACT_ADDRESSES.CTF_WRAPPER,
+    oracle: CONTRACT_ADDRESSES.MOCK_ORACLE,
+    irm: CONTRACT_ADDRESSES.ADAPTIVE_CURVE_IRM,
+    lltv: BigInt(CONFIG.LLTV),
+  }
+
+  const CALCULATED_MARKET_ID = keccak256(
+    encodeAbiParameters(
+      parseAbiParameters('address,address,address,address,uint256'),
+      [
+        MARKET_PARAMS.loanToken,
+        MARKET_PARAMS.collateralToken,
+        MARKET_PARAMS.oracle,
+        MARKET_PARAMS.irm,
+        MARKET_PARAMS.lltv
+      ]
+    )
+  )
+
+  const supplyAmountInWei = supplyAmount ? parseUnits(supplyAmount, TOKEN_DECIMALS.USDC) : 0n
+
   const supplyNeedsApproval = allowance !== undefined && parseUnits(supplyAmount || '0', 6) > allowance
   const hasSupplyBalance = balance !== undefined && parseUnits(supplyAmount || '0', 6) <= balance
   const hasWithdrawBalance = position !== undefined && parseUnits(withdrawAmount || '0', 6) <= position[0]
 
   const handleSupply = () => {
-    if (!supplyAmount || !address) return
+    console.log('handleSupply called', { supplyAmount, address, hasSupplyBalance, supplyNeedsApproval })
+    if (!supplyAmount || !address) {
+      console.log('handleSupply early return', { supplyAmount, address })
+      return
+    }
+    console.log('Calling supply function with:', { supplyAmount, address })
     supply(supplyAmount, address)
   }
 
@@ -103,6 +135,46 @@ export function LendPage() {
               </ul>
             </div>
 
+            {/* Debug Information */}
+            {supplyAmount && (
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h4 className="font-medium text-gray-800 mb-2">🔧 Debug: Supply Transaction Details</h4>
+                <div className="text-xs text-gray-700 space-y-1 font-mono">
+                  <p><strong>Contract:</strong> {CONTRACT_ADDRESSES.MORPHO_BLUE}</p>
+                  <p><strong>Function:</strong> supply</p>
+                  <p><strong>Amount (input):</strong> {supplyAmount} USDC</p>
+                  <p><strong>Amount (wei):</strong> {supplyAmountInWei.toString()}</p>
+                  <p><strong>Parameters:</strong></p>
+                  <div className="ml-4 space-y-1">
+                    <p>• _marketParams:</p>
+                    <div className="ml-6 space-y-1">
+                      <p>  - loanToken: {MARKET_PARAMS.loanToken}</p>
+                      <p>  - collateralToken: {MARKET_PARAMS.collateralToken}</p>
+                      <p>  - oracle: {MARKET_PARAMS.oracle}</p>
+                      <p>  - irm: {MARKET_PARAMS.irm}</p>
+                      <p>  - lltv: {MARKET_PARAMS.lltv.toString()}</p>
+                    </div>
+                    <p>• _assets: {supplyAmountInWei.toString()}</p>
+                    <p>• _shares: 0</p>
+                    <p>• _onBehalf: {address}</p>
+                    <p>• _data: toHex('') (empty bytes)</p>
+                  </div>
+                  <p><strong>Market ID:</strong> {CALCULATED_MARKET_ID}</p>
+                  <p><strong>Button State Debug:</strong></p>
+                  <div className="ml-4 space-y-1">
+                    <p>• supplyNeedsApproval: {supplyNeedsApproval ? 'true' : 'false'}</p>
+                    <p>• isMorphoPending: {isMorphoPending ? 'true' : 'false'}</p>
+                    <p>• isMorphoConfirming: {isMorphoConfirming ? 'true' : 'false'}</p>
+                    <p>• hasSupplyAmount: {supplyAmount ? 'true' : 'false'}</p>
+                    <p>• hasSupplyBalance: {hasSupplyBalance ? 'true' : 'false'}</p>
+                    <p>• allowance: {allowance?.toString() || 'undefined'}</p>
+                    <p>• balance: {balance?.toString() || 'undefined'}</p>
+                    <p>• buttonDisabled: {(isMorphoPending || isMorphoConfirming || !supplyAmount || !hasSupplyBalance) ? 'true' : 'false'}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {supplyNeedsApproval ? (
               <button
                 onClick={handleApprove}
@@ -113,7 +185,16 @@ export function LendPage() {
               </button>
             ) : (
               <button
-                onClick={handleSupply}
+                onClick={(e) => {
+                  console.log('Supply button clicked', { 
+                    disabled: e.currentTarget.disabled,
+                    supplyAmount,
+                    hasSupplyBalance,
+                    isMorphoPending,
+                    isMorphoConfirming 
+                  })
+                  handleSupply()
+                }}
                 disabled={isMorphoPending || isMorphoConfirming || !supplyAmount || !hasSupplyBalance}
                 className="w-full bg-emerald-600 text-white py-4 px-6 rounded-lg text-lg font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
@@ -211,6 +292,8 @@ export function LendPage() {
           </div>
         </div>
       )}
+
+      <MarketValidation />
     </div>
   )
 }
