@@ -234,7 +234,7 @@ export function LendPage() {
               </div>
               {position && (
                 <p className="text-sm text-neutral-600 mt-2">
-                  Supplied: {formatUnits(position[0], 6)} USDC
+                  Supplied: {formatUnits(position[0], 12)} USDC
                 </p>
               )}
             </div>
@@ -272,14 +272,14 @@ export function LendPage() {
             <div className="text-center">
               <p className="text-sm text-neutral-600 mb-1">Total Supplied</p>
               <p className="text-2xl font-bold text-emerald-600">
-                {formatUnits(position[0], 6)} USDC
+                {formatUnits(position[0], 12)} USDC
               </p>
             </div>
             
             <div className="text-center">
               <p className="text-sm text-neutral-600 mb-1">Supply Shares</p>
               <p className="text-2xl font-bold text-neutral-900">
-                {formatUnits(position[0], 6)}
+                {formatUnits(position[0], 12)}
               </p>
             </div>
             

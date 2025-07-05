@@ -60,9 +60,9 @@ export function Dashboard() {
             <div>
               <h4 className="text-sm font-medium text-neutral-600 mb-2">Supplied</h4>
               <p className="text-xl font-bold text-emerald-600">
-                {formatUnits(position[0], TOKEN_DECIMALS.USDC)} USDC
+                {formatUnits(position[0], 12)} USDC
               </p>
-              <p className="text-xs text-neutral-500 mt-1">Supply Shares: {formatUnits(position[0], TOKEN_DECIMALS.USDC)}</p>
+              <p className="text-xs text-neutral-500 mt-1">Supply Shares: {formatUnits(position[0], 12)}</p>
             </div>
 
             <div>
