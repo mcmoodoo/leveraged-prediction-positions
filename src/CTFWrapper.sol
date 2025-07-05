@@ -33,17 +33,21 @@ contract CTFWrapper is ERC20, ERC1155Holder, Ownable {
             amount,
             ""
         );
+
+        uint256 scaledAmount = amount * 10 ** decimals();
         
-        _mint(msg.sender, amount);
+        _mint(msg.sender, scaledAmount);
         
-        emit Wrapped(msg.sender, amount);
+        emit Wrapped(msg.sender, scaledAmount);
     }
 
     function unwrap(uint256 amount) external {
         require(amount > 0, "Amount must be greater than 0");
         require(balanceOf(msg.sender) >= amount, "Insufficient wrapped tokens");
         
-        _burn(msg.sender, amount);
+        uint256 scaledAmount = amount * 10 ** decimals();
+
+        _burn(msg.sender, scaledAmount);
         
         ctfContract.safeTransferFrom(
             address(this),
@@ -53,7 +57,7 @@ contract CTFWrapper is ERC20, ERC1155Holder, Ownable {
             ""
         );
         
-        emit Unwrapped(msg.sender, amount);
+        emit Unwrapped(msg.sender, scaledAmount);
     }
 
     function getWrappedBalance() external view returns (uint256) {

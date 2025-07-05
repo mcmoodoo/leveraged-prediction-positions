@@ -36,20 +36,6 @@ contract CreateMorphoMarketScript is Script {
         bytes32 marketId = keccak256(abi.encode(marketParams));
         console.log("Market ID:");
         console.logBytes32(marketId);
-        
-        // Update MARKET_ID in .env file
-        string[] memory sedCmd = new string[](4);
-        sedCmd[0] = "sed";
-        sedCmd[1] = "-i";
-        sedCmd[2] = "/^MARKET_ID=/d";
-        sedCmd[3] = ".env";
-        vm.ffi(sedCmd);
-        
-        string[] memory echoCmd = new string[](3);
-        echoCmd[0] = "sh";
-        echoCmd[1] = "-c";
-        echoCmd[2] = string(abi.encodePacked("echo 'MARKET_ID=0x", vm.toString(marketId), "' >> .env"));
-        vm.ffi(echoCmd);
 
         vm.startBroadcast();
 
