@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { useAccount } from 'wagmi'
-import { formatUnits, parseUnits } from 'viem'
 import { useTokenTransactions, useRawCTFBalance, useCTFBalance, useRawCTFApproval } from '../hooks/useMorpho'
-import { MARKET_CONFIG } from '../contracts/addresses'
-import { TOKEN_DECIMALS } from '../contracts/constants'
+import { TOKEN_IDS } from '../contracts/constants'
 
 export function WrapPage() {
   const [amount, setAmount] = useState('')
@@ -17,7 +15,7 @@ export function WrapPage() {
 
   const needsApproval = isWrapping && isApproved !== undefined && !isApproved
   const balance = isWrapping ? rawBalance : wrappedBalance
-  const hasBalance = balance !== undefined && parseUnits(amount || '0', TOKEN_DECIMALS.RAW_CTF) <= balance
+  const hasBalance = balance !== undefined && balance !== null && typeof balance === 'bigint' && balance > 0n && BigInt(amount || '0') <= balance
 
   const handleWrap = () => {
     if (!amount) return
@@ -34,8 +32,8 @@ export function WrapPage() {
   }
 
   const setMaxAmount = () => {
-    if (balance) {
-      setAmount(formatUnits(balance, TOKEN_DECIMALS.RAW_CTF))
+    if (balance && typeof balance === 'bigint') {
+      setAmount(balance.toString())
     }
   }
 
@@ -93,7 +91,8 @@ export function WrapPage() {
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.00"
+                  placeholder="0"
+                  step="1"
                   className="w-full px-4 py-4 border border-neutral-300 rounded-lg text-lg focus:ring-2 focus:ring-beige-500 focus:border-transparent"
                 />
                 <button
@@ -170,7 +169,7 @@ export function WrapPage() {
                   <p className="text-xs text-neutral-600">Original prediction tokens</p>
                 </div>
                 <p className="text-lg font-bold text-neutral-900">
-                  {rawBalance ? rawBalance.toString() : '0'}
+                  {rawBalance && typeof rawBalance === 'bigint' ? rawBalance.toString() : '0'}
                 </p>
               </div>
               
@@ -180,7 +179,7 @@ export function WrapPage() {
                   <p className="text-xs text-neutral-600">DeFi-compatible tokens</p>
                 </div>
                 <p className="text-lg font-bold text-neutral-900">
-                  {wrappedBalance ? formatUnits(wrappedBalance, TOKEN_DECIMALS.CTF_WRAPPER) : '0'}
+                  {wrappedBalance && typeof wrappedBalance === 'bigint' ? wrappedBalance.toString() : '0'}
                 </p>
               </div>
             </div>
@@ -194,7 +193,7 @@ export function WrapPage() {
               <div>
                 <p className="font-medium text-neutral-700">Token ID:</p>
                 <p className="text-xs text-neutral-600 break-all font-mono">
-                  {MARKET_CONFIG.CTF_TOKEN_ID}
+                  {TOKEN_IDS.RECESSION_NO}
                 </p>
               </div>
               

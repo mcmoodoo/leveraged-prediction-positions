@@ -1,6 +1,6 @@
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { parseUnits } from 'viem'
-import { CONTRACT_ADDRESSES, MARKET_CONFIG } from '../contracts/addresses'
+import { CONTRACT_ADDRESSES, TOKEN_IDS, MARKET_IDS, CONFIG } from '../contracts/constants'
 import { MORPHO_BLUE_ABI, ERC20_ABI, CTF_WRAPPER_ABI, ERC1155_ABI } from '../contracts/abis'
 import { TOKEN_DECIMALS } from '../contracts/constants'
 
@@ -9,7 +9,7 @@ const MARKET_PARAMS = {
   collateralToken: CONTRACT_ADDRESSES.CTF_WRAPPER,
   oracle: CONTRACT_ADDRESSES.MOCK_ORACLE,
   irm: CONTRACT_ADDRESSES.ADAPTIVE_CURVE_IRM,
-  lltv: BigInt(MARKET_CONFIG.LLTV),
+  lltv: BigInt(CONFIG.LLTV),
 }
 
 export function useUserPosition(userAddress?: `0x${string}`) {
@@ -17,7 +17,7 @@ export function useUserPosition(userAddress?: `0x${string}`) {
     address: CONTRACT_ADDRESSES.MORPHO_BLUE,
     abi: MORPHO_BLUE_ABI,
     functionName: 'position',
-    args: [MARKET_CONFIG.MARKET_ID as `0x${string}`, userAddress!],
+    args: [MARKET_IDS.MORPHO_MARKET as `0x${string}`, userAddress!],
     query: { enabled: !!userAddress },
   })
 }
@@ -27,7 +27,7 @@ export function useMarketData() {
     address: CONTRACT_ADDRESSES.MORPHO_BLUE,
     abi: MORPHO_BLUE_ABI,
     functionName: 'market',
-    args: [MARKET_CONFIG.MARKET_ID as `0x${string}`],
+    args: [MARKET_IDS.MORPHO_MARKET as `0x${string}`],
   })
 }
 
@@ -56,7 +56,7 @@ export function useRawCTFBalance(userAddress?: `0x${string}`) {
     address: CONTRACT_ADDRESSES.MOCK_POLYMARKET_CTF,
     abi: ERC1155_ABI,
     functionName: 'balanceOf',
-    args: [userAddress!, BigInt(MARKET_CONFIG.CTF_TOKEN_ID)],
+    args: [userAddress!, BigInt(TOKEN_IDS.RECESSION_NO)],
     query: { enabled: !!userAddress },
   })
 }
@@ -266,7 +266,7 @@ export function useTokenTransactions() {
   }
 
   const unwrapCTF = (amount: string) => {
-    const value = parseUnits(amount, TOKEN_DECIMALS.CTF_WRAPPER)
+    const value = BigInt(amount)
     writeContract({
       address: CONTRACT_ADDRESSES.CTF_WRAPPER,
       abi: CTF_WRAPPER_ABI,

@@ -1,18 +1,24 @@
 import { useReadContract } from 'wagmi'
 import { keccak256, encodeAbiParameters, parseAbiParameters } from 'viem'
-import { CONTRACT_ADDRESSES, MARKET_CONFIG } from '../contracts/addresses'
+import { CONTRACT_ADDRESSES, MARKET_IDS, CONFIG } from '../contracts/constants'
 
 const MARKET_PARAMS = {
   loanToken: CONTRACT_ADDRESSES.MOCK_USDC,
   collateralToken: CONTRACT_ADDRESSES.CTF_WRAPPER,
   oracle: CONTRACT_ADDRESSES.MOCK_ORACLE,
   irm: CONTRACT_ADDRESSES.ADAPTIVE_CURVE_IRM,
-  lltv: BigInt(MARKET_CONFIG.LLTV),
+  lltv: BigInt(CONFIG.LLTV),
 }
 
 export function MarketValidation() {
-  // Calculate expected market ID
-  const calculatedMarketId = keccak256(
+  // Check if all addresses are defined
+  const hasValidAddresses = MARKET_PARAMS.loanToken && 
+    MARKET_PARAMS.collateralToken && 
+    MARKET_PARAMS.oracle && 
+    MARKET_PARAMS.irm
+
+  // Calculate expected market ID only if addresses are valid
+  const calculatedMarketId = hasValidAddresses ? keccak256(
     encodeAbiParameters(
       parseAbiParameters('address,address,address,address,uint256'),
       [
@@ -23,7 +29,7 @@ export function MarketValidation() {
         MARKET_PARAMS.lltv
       ]
     )
-  )
+  ) : null
 
   // Check if market exists with our calculated ID
   const { data: marketData } = useReadContract({
@@ -43,7 +49,8 @@ export function MarketValidation() {
       "stateMutability": "view"
     }],
     functionName: 'market',
-    args: [calculatedMarketId],
+    args: calculatedMarketId ? [calculatedMarketId] : undefined,
+    query: { enabled: !!calculatedMarketId },
   })
 
   // Check oracle price
@@ -63,16 +70,27 @@ export function MarketValidation() {
       "stateMutability": "view"
     }],
     functionName: 'latestRoundData',
+    query: { enabled: !!CONTRACT_ADDRESSES.MOCK_ORACLE },
   })
 
   return (
     <div className="mt-4 bg-blue-50 border border-blue-200 p-4 rounded-lg">
       <h4 className="font-medium text-blue-800 mb-2">🔧 Market Validation</h4>
       <div className="text-sm text-blue-700 space-y-1">
+        {!hasValidAddresses && (
+          <div className="mb-3 p-2 bg-red-100 border border-red-300 rounded">
+            <p className="text-red-700"><strong>⚠️ Missing Contract Addresses:</strong></p>
+            {!MARKET_PARAMS.loanToken && <p className="text-red-600">• MOCK_USDC address missing</p>}
+            {!MARKET_PARAMS.collateralToken && <p className="text-red-600">• CTF_WRAPPER address missing</p>}
+            {!MARKET_PARAMS.oracle && <p className="text-red-600">• MOCK_ORACLE address missing</p>}
+            {!MARKET_PARAMS.irm && <p className="text-red-600">• ADAPTIVE_CURVE_IRM address missing</p>}
+          </div>
+        )}
+        
         <p><strong>Market IDs:</strong></p>
-        <p>• Expected: {MARKET_CONFIG.MARKET_ID}</p>
-        <p>• Calculated: {calculatedMarketId}</p>
-        <p>• Match: {calculatedMarketId === MARKET_CONFIG.MARKET_ID ? '✅ YES' : '❌ NO'}</p>
+        <p>• Expected: {MARKET_IDS.MORPHO_MARKET}</p>
+        <p>• Calculated: {calculatedMarketId || 'Error calculating market ID'}</p>
+        <p>• Match: {calculatedMarketId && calculatedMarketId === MARKET_IDS.MORPHO_MARKET ? '✅ YES' : '❌ NO'}</p>
         
         <p><strong>Market Data:</strong></p>
         {marketData ? (
