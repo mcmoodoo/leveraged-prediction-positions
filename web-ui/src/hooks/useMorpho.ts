@@ -168,21 +168,28 @@ export function useMorphoTransactions() {
     })
   }
 
-  const borrow = (amount: string, userAddress: `0x${string}`) => {
-    const assets = parseUnits(amount, TOKEN_DECIMALS.USDC)
-    writeContract({
-      address: CONTRACT_ADDRESSES.MORPHO_BLUE,
-      abi: MORPHO_BLUE_ABI,
-      functionName: 'borrow',
-      args: [
-        MARKET_PARAMS,
-        assets, 
-        0n, 
-        userAddress, 
-        userAddress
-      ],
-    })
-  }
+const borrow = (amount: string, userAddress: `0x${string}`) => {
+  const assets = parseUnits(amount, TOKEN_DECIMALS.USDC);
+
+  console.log("Borrow variables:");
+  console.log("amount:", amount);
+  console.log("assets (parsed amount):", assets.toString());
+  console.log("userAddress:", userAddress);
+  console.log("MARKET_PARAMS:", MARKET_PARAMS);
+
+  writeContract({
+    address: CONTRACT_ADDRESSES.MORPHO_BLUE,
+    abi: MORPHO_BLUE_ABI,
+    functionName: 'borrow',
+    args: [
+      MARKET_PARAMS,
+      assets, 
+      0n, 
+      userAddress, 
+      userAddress
+    ],
+  });
+}
 
   const repay = (amount: string, userAddress: `0x${string}`) => {
     const assets = parseUnits(amount, TOKEN_DECIMALS.USDC)

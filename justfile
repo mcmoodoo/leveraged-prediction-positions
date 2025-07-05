@@ -71,3 +71,7 @@ show:
 # Clean artifacts
 clean:
     rm -rf broadcast/ cache/ out/
+
+borrow-1-usdc:
+    cast send 0x1bF0c2541F820E775182832f06c0B7Fc27A25f67 "borrow((address,address,address,address,uint256),uint256,uint256,address,address)" "(0x33eef5d955da603208dec0d710c7285ff4a4f379,0x2ceb0cb6bbbbea6f3dead524bccbcc26bc99df9b,0x70e5880144b02388b55fa19074d752b5f00b6c6b,0xe675A2161D4a6E2de2eeD70ac98EEBf257FBF0B0,770000000000000000)" 1000000 0 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 --rpc-url $POLYGON_RPC --account chromion
+
