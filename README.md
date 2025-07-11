@@ -97,3 +97,19 @@ forge script script/RecessionNoCTFWrapper.s.sol:MockRecessionNoTokenWrapperScrip
 # Requires: MOCK_USDC_ADDRESS, CTF_WRAPPER_ADDRESS, MOCK_ORACLE_ADDRESS to be set in .env
 forge script script/CreateMorphoMarket.s.sol:CreateMorphoMarketScript --rpc-url $POLYGON_RPC --account chromion --broadcast
 ```
+
+### Possible Oracle issue - wrong price
+
+Albist | Morpho suggested:
+
+```
+but does the oracle returns a price? it does seem so checking at the market page.
+
+In the code here (https://github.com/morpho-org/morpho-blue/blob/0448402af51b8293ed36653de43cbee8d4d2bfda/src/interfaces/IMorpho.sol#L104-L128) there are some conditions on how market's dependencies must behave for a market acting as expected.
+
+Some being oracle related. As the market will check oracle price to see if the position taken by the borrower can actually be taken.
+
+So the fact that the oracle is compliant to an interface is not enough, it has to actually properly return a price, not revert, etc.
+
+Did you use the MorphoChainlinkOracleV2Factory to deploy the oracle? See doc on Oracle deployment in the documentation here.
+```
