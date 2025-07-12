@@ -10,24 +10,15 @@ contract MockOracleScript is Script {
     function setUp() public {}
 
     function run() public {
-        // Oracle configuration for CTF/USDC pair
-        uint8 decimals = 8; // Standard for Chainlink price feeds
-        string memory description = "CTF / USDC";
-        uint256 version = 1;
-        int256 initialPrice = 100_000_000; // 1.00 USDC per CTF token (8 decimals)
+        uint256 initialPrice = 0.7 * 10 ** 18; // How many loan tokens (mockUSDC) per one unit of collateral (RecessionNoWrappedShare)
 
         vm.startBroadcast();
 
         mockOracle = new MockOracle(
-            decimals,
-            description,
-            version,
             initialPrice
         );
 
         console.log("Mock Oracle deployed at:", address(mockOracle));
-        console.log("Description:", description);
-        console.log("Decimals:", decimals);
         console.log("Initial Price:", uint256(initialPrice));
 
         vm.stopBroadcast();

@@ -76,7 +76,7 @@ contract CreateMorphoMarketTest is Test {
             "Wrapped CTF Token",
             "wCTF"
         );
-        mockOracle = new MockOracle(8, "CTF / USDC", 1, 100000000);
+        mockOracle = new MockOracle(100000000);
         
         // Set up market parameters
         marketParams = MarketParams({

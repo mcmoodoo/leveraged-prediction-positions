@@ -1,5 +1,29 @@
 # Simple justfile for deploying contracts on Polygon
 
+# Extract all variables from JSON config files as environment variables
+extract-env:
+    #!/usr/bin/env bash
+    
+    # Check if required files exist
+    if [ ! -f "protocol-config.json" ]; then
+        echo "Error: protocol-config.json not found" >&2
+        exit 1
+    fi
+    
+    if [ ! -f "market-deployment.json" ]; then
+        echo "Error: market-deployment.json not found" >&2
+        exit 1
+    fi
+    
+    # Extract and output export statements
+    echo "export MORPHO_BLUE=\"$(jq -r '.morpho.morphoBlueAddress' protocol-config.json)\""
+    echo "export ADAPTIVE_CURVE_IRM=\"$(jq -r '.morpho.adaptiveCurveIrmAddress' protocol-config.json)\""
+    echo "export LLTV=\"$(jq -r '.market.lltv' protocol-config.json)\""
+    echo "export LOAN_TOKEN=\"$(jq -r '.contracts.mockUsdc' market-deployment.json)\""
+    echo "export MOCK_ORACLE=\"$(jq -r '.contracts.mockOracle' market-deployment.json)\""
+    echo "export MOCK_POLYMARKET_CTF=\"$(jq -r '.contracts.mockPolyMarketCTF' market-deployment.json)\""
+    echo "export COLLATERAL_TOKEN=\"$(jq -r '.contracts.recessionNoWrapper' market-deployment.json)\""
+
 # Deploy Mock USDC
 deploy-usdc:
     forge script script/MockUSDC.s.sol:MockUSDCScript --rpc-url $POLYGON_RPC --account chromion --broadcast
@@ -18,6 +42,7 @@ deploy-wrapper:
 
 # Create Morpho Market (requires all addresses above)
 deploy-market:
+    @just update-market-config
     forge script script/CreateMorphoMarket.s.sol:CreateMorphoMarketScript --rpc-url $POLYGON_RPC --account chromion --broadcast
 
 # Deploy all contracts in dependency order
