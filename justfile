@@ -84,9 +84,17 @@ _update-market-config script_name contract_key:
         "chainId": "137",
         "lastUpdated": null
       },
-      "contracts": {}
+      "contracts": {},
+      "tokenIds": {
+        "mockRecessionNoTokenId": "105452622481843462309689659320513353976826103710406847075024399449421535866880"
+      }
     }
     JSONEOF
+    fi
+    
+    # Ensure tokenIds section exists in existing config files
+    if ! jq -e '.tokenIds' "$CONFIG_FILE" > /dev/null 2>&1; then
+        jq '. + {"tokenIds": {"mockRecessionNoTokenId": "105452622481843462309689659320513353976826103710406847075024399449421535866880"}}' "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
     fi
     
     # Update the contract address and timestamp

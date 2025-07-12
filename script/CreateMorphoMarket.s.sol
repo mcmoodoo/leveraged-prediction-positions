@@ -8,13 +8,17 @@ contract CreateMorphoMarketScript is Script {
     function setUp() public {}
 
     function run() public {
-        // Load addresses from environment
-        address morphoBlue = vm.envAddress("MORPHO_BLUE_ADDRESS");
-        address loanToken = vm.envAddress("MOCK_USDC_ADDRESS");
-        address collateralToken = vm.envAddress("RECESSION_NO_WRAPPER_ADDRESS");
-        address oracle = vm.envAddress("MOCK_ORACLE_ADDRESS");
-        address irm = vm.envAddress("ADAPTIVE_CURVE_IRM_ADDRESS");
-        uint256 lltv = vm.envUint("LLTV");
+        // Load configuration from JSON files
+        string memory marketJson = vm.readFile("market-deployment.json");
+        string memory protocolJson = vm.readFile("protocol-config.json");
+        
+        // Load addresses from configuration files
+        address morphoBlue = vm.parseJsonAddress(protocolJson, ".morpho.morphoBlueAddress");
+        address loanToken = vm.parseJsonAddress(marketJson, ".contracts.mockUsdc");
+        address collateralToken = vm.parseJsonAddress(marketJson, ".contracts.recessionNoWrapper");
+        address oracle = vm.parseJsonAddress(marketJson, ".contracts.mockOracle");
+        address irm = vm.parseJsonAddress(protocolJson, ".morpho.adaptiveCurveIrmAddress");
+        uint256 lltv = vm.parseJsonUint(protocolJson, ".market.lltv");
 
         console.log("Creating Morpho Blue Market with:");
         console.log("Morpho Blue:", morphoBlue);

@@ -9,9 +9,10 @@ contract MintTestTokensScript is Script {
     function setUp() public {}
 
     function run() public {
-        // Load addresses from environment
-        address mockUSDC = vm.envAddress("MOCK_USDC_ADDRESS");
-        address mockCTF = vm.envAddress("MOCK_POLYMARKET_CTF_ADDRESS");
+        // Load configuration from JSON file
+        string memory json = vm.readFile("market-deployment.json");
+        address mockUSDC = vm.parseJsonAddress(json, ".contracts.mockUsdc");
+        address mockCTF = vm.parseJsonAddress(json, ".contracts.mockPolyMarketCTF");
         
         // Get the target address (deployer or specified address)
         address target = msg.sender;

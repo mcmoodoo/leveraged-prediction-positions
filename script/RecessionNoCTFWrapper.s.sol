@@ -10,9 +10,9 @@ contract MockRecessionNoTokenWrapperScript is Script {
     function setUp() public {}
 
     function run() public {
-        address mockPolyMarketCTFAddress = vm.envAddress("MOCK_POLYMARKET_CTF_ADDRESS");
-        // Use the actual token ID that exists in Mock CTF: keccak256("Recession NO token")
-        uint256 mockRecessionNoTokenId = uint256(keccak256("Recession NO token"));
+        string memory json = vm.readFile("market-deployment.json");
+        address mockPolyMarketCTFAddress = vm.parseJsonAddress(json, ".contracts.mockPolyMarketCTF");
+        uint256 mockRecessionNoTokenId = vm.parseJsonUint(json, ".tokenIds.mockRecessionNoTokenId");
 
         vm.startBroadcast();
 
