@@ -360,3 +360,99 @@ unwrap-ctf amount:
     # Execute unwrap transaction
     cast send "$CTF_WRAPPER" "unwrap(uint256,uint256)" "$TOKEN_ID" $(({{amount}}*1000000000000000000)) --rpc-url $POLYGON_RPC --account chromion
 
+# Check USDC balance
+balance-usdc:
+    #!/usr/bin/env bash
+    if [ ! -f "market-deployment.json" ]; then
+        echo "Error: market-deployment.json is required"
+        exit 1
+    fi
+    
+    USDC_TOKEN=$(jq -r '.contracts.mockUsdc' market-deployment.json)
+    
+    if [ "$USDC_TOKEN" = "null" ]; then
+        echo "Error: Missing USDC contract address. Run 'just update-market-config' first."
+        exit 1
+    fi
+    
+    echo "Checking USDC balance for account: 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9"
+    echo "USDC Token: $USDC_TOKEN"
+    echo ""
+    
+    # Get balance (6 decimals for USDC)
+    BALANCE=$(cast call "$USDC_TOKEN" "balanceOf(address)" 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 --rpc-url $POLYGON_RPC)
+    BALANCE_DECIMAL=$(cast to-dec $BALANCE)
+    BALANCE_FORMATTED=$(echo "scale=6; $BALANCE_DECIMAL / 1000000" | bc -l)
+    
+    echo "Raw balance: $BALANCE_DECIMAL"
+    echo "Formatted balance: $BALANCE_FORMATTED USDC"
+
+# Check wrapped CTF token balance (ERC20)
+balance-wrapped-ctf:
+    #!/usr/bin/env bash
+    if [ ! -f "market-deployment.json" ]; then
+        echo "Error: market-deployment.json is required"
+        exit 1
+    fi
+    
+    CTF_WRAPPER=$(jq -r '.contracts.recessionNoWrapper' market-deployment.json)
+    
+    if [ "$CTF_WRAPPER" = "null" ]; then
+        echo "Error: Missing CTF Wrapper contract address. Run 'just update-market-config' first."
+        exit 1
+    fi
+    
+    echo "Checking wrapped CTF token balance for account: 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9"
+    echo "Wrapped CTF Token: $CTF_WRAPPER"
+    echo ""
+    
+    # Get balance (18 decimals for wrapped token)
+    BALANCE=$(cast call "$CTF_WRAPPER" "balanceOf(address)" 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 --rpc-url $POLYGON_RPC)
+    BALANCE_DECIMAL=$(cast to-dec $BALANCE)
+    BALANCE_FORMATTED=$(echo "scale=18; $BALANCE_DECIMAL / 1000000000000000000" | bc -l)
+    
+    echo "Raw balance: $BALANCE_DECIMAL"
+    echo "Formatted balance: $BALANCE_FORMATTED wCTF"
+
+# Check original ERC1155 CTF token balance
+balance-ctf:
+    #!/usr/bin/env bash
+    if [ ! -f "market-deployment.json" ]; then
+        echo "Error: market-deployment.json is required"
+        exit 1
+    fi
+    
+    CTF_CONTRACT=$(jq -r '.contracts.mockPolyMarketCTF' market-deployment.json)
+    TOKEN_ID=$(jq -r '.tokenIds.mockRecessionNoTokenId' market-deployment.json)
+    
+    if [ "$CTF_CONTRACT" = "null" ] || [ "$TOKEN_ID" = "null" ]; then
+        echo "Error: Missing CTF contract address or token ID. Run 'just update-market-config' first."
+        exit 1
+    fi
+    
+    echo "Checking ERC1155 CTF token balance for account: 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9"
+    echo "CTF Contract: $CTF_CONTRACT"
+    echo "Token ID: $TOKEN_ID"
+    echo ""
+    
+    # Get balance (ERC1155 balanceOf)
+    BALANCE=$(cast call "$CTF_CONTRACT" "balanceOf(address,uint256)" 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 "$TOKEN_ID" --rpc-url $POLYGON_RPC)
+    BALANCE_DECIMAL=$(cast to-dec $BALANCE)
+    BALANCE_FORMATTED=$(echo "scale=18; $BALANCE_DECIMAL / 1000000000000000000" | bc -l)
+    
+    echo "Raw balance: $BALANCE_DECIMAL"
+    echo "Formatted balance: $BALANCE_FORMATTED CTF"
+
+# Check all token balances at once
+balance-all:
+    @echo "=== Checking all token balances ==="
+    @echo ""
+    @echo "1. USDC Balance:"
+    @just balance-usdc
+    @echo ""
+    @echo "2. Wrapped CTF Balance:"
+    @just balance-wrapped-ctf
+    @echo ""
+    @echo "3. Original ERC1155 CTF Balance:"
+    @just balance-ctf
+
