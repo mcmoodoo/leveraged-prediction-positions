@@ -32,10 +32,12 @@ deploy-all:
 mint-tokens:
     forge script script/MintTestTokens.s.sol:MintTestTokensScript --rpc-url $POLYGON_RPC --account chromion --broadcast
 
-# Internal function to update .env with deployed contract addresses
-_update-env script_name env_var_name:
+# Internal function to update market deployment config
+_update-market-config script_name contract_key:
     #!/usr/bin/env bash
     BROADCAST_FILE="broadcast/{{script_name}}/137/run-latest.json"
+    CONFIG_FILE="market-deployment.json"
+    
     if [ ! -f "$BROADCAST_FILE" ]; then
         echo "Error: Broadcast file not found: $BROADCAST_FILE"
         exit 1
@@ -46,32 +48,128 @@ _update-env script_name env_var_name:
         exit 1
     fi
     echo "Extracted address: $CONTRACT_ADDRESS"
-    if grep -q "^{{env_var_name}}=" .env 2>/dev/null; then
-        sed -i "s/^{{env_var_name}}=.*$/{{env_var_name}}=$CONTRACT_ADDRESS/" .env
-        echo "Updated {{env_var_name}} in .env"
-    else
-        echo "{{env_var_name}}=$CONTRACT_ADDRESS" >> .env
-        echo "Added {{env_var_name}} to .env"
+    
+    # Initialize config file if it doesn't exist
+    if [ ! -f "$CONFIG_FILE" ]; then
+        cat > "$CONFIG_FILE" << 'JSONEOF'
+    {
+      "metadata": {
+        "marketName": "leveraged-prediction-positions",
+        "network": "polygon",
+        "chainId": "137",
+        "lastUpdated": null
+      },
+      "contracts": {}
+    }
+    JSONEOF
+    fi
+    
+    # Update the contract address and timestamp
+    jq --arg key "{{contract_key}}" --arg address "$CONTRACT_ADDRESS" --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
+      .contracts[$key] = $address |
+      .metadata.lastUpdated = $timestamp
+    ' "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+    
+    echo "Updated {{contract_key}} in $CONFIG_FILE"
+
+# Update market deployment config with deployed contract addresses
+update-market-config:
+    @echo "Updating market deployment config with deployed contract addresses..."
+    @just _update-market-config MockUSDC.s.sol mockUsdc
+    @just _update-market-config MockOracle.s.sol mockOracle
+    @just _update-market-config MockPolyMarketCTF.s.sol mockPolyMarketCTF
+    @just _update-market-config RecessionNoCTFWrapper.s.sol recessionNoWrapper
+    @echo "✓ All addresses updated in market-deployment.json"
+
+# Show current market deployment config
+show-market:
+    @echo "Current market deployment config:"
+    @if [ -f "protocol-config.json" ]; then \
+        echo "Market: $(jq -r '.metadata.description' protocol-config.json)"; \
+        echo "Network: $(jq -r '.metadata.network' protocol-config.json) (Chain ID: $(jq -r '.metadata.chainId' protocol-config.json))"; \
+        echo ""; \
+        echo "Protocol Configuration:"; \
+        echo "  Morpho Blue: $(jq -r '.morpho.morphoBlueAddress' protocol-config.json)"; \
+        echo "  Adaptive Curve IRM: $(jq -r '.morpho.adaptiveCurveIrmAddress' protocol-config.json)"; \
+        echo "  LLTV: $(jq -r '.market.lltv' protocol-config.json)"; \
+        echo "  TokenId: $(cast keccak 'Recession NO token')"; \
+        echo ""; \
+    else \
+        echo "Warning: protocol-config.json not found"; \
+        echo ""; \
+    fi
+    @if [ -f "market-deployment.json" ]; then \
+        echo "Last Deployment: $(jq -r '.metadata.lastUpdated' market-deployment.json)"; \
+        echo "Deployed Contracts:"; \
+        jq -r '.contracts | to_entries[] | "  \(.key): \(.value)"' market-deployment.json; \
+    else \
+        echo "No deployment config found. Run 'just update-market-config' after deploying contracts."; \
     fi
 
-# Update all environment variables from broadcast files
-update-env:
-    @echo "Updating .env with deployed contract addresses..."
-    @just _update-env MockUSDC.s.sol MOCK_USDC_ADDRESS
-    @just _update-env MockOracle.s.sol MOCK_ORACLE_ADDRESS
-    @just _update-env MockPolyMarketCTF.s.sol MOCK_POLYMARKET_CTF_ADDRESS
-    @just _update-env RecessionNoCTFWrapper.s.sol RECESSION_NO_WRAPPER_ADDRESS
-    @echo "✓ All addresses updated in .env"
+# Calculate market ID from configuration files
+calculate-market-id:
+    #!/usr/bin/env bash
+    if [ ! -f "protocol-config.json" ] || [ ! -f "market-deployment.json" ]; then
+        echo "Error: Both protocol-config.json and market-deployment.json are required"
+        exit 1
+    fi
+    
+    # Extract required values
+    LOAN_TOKEN=$(jq -r '.contracts.mockUsdc' market-deployment.json)
+    COLLATERAL_TOKEN=$(jq -r '.contracts.recessionNoWrapper' market-deployment.json)
+    ORACLE=$(jq -r '.contracts.mockOracle' market-deployment.json)
+    IRM=$(jq -r '.morpho.adaptiveCurveIrmAddress' protocol-config.json)
+    LLTV=$(jq -r '.market.lltv' protocol-config.json)
+    
+    # Validate addresses
+    if [ "$LOAN_TOKEN" = "null" ] || [ "$COLLATERAL_TOKEN" = "null" ] || [ "$ORACLE" = "null" ]; then
+        echo "Error: Missing deployed contract addresses. Run 'just update-market-config' first."
+        exit 1
+    fi
+    
+    echo "Calculating Market ID with:"
+    echo "  Loan Token: $LOAN_TOKEN"
+    echo "  Collateral Token: $COLLATERAL_TOKEN"
+    echo "  Oracle: $ORACLE"
+    echo "  IRM: $IRM"
+    echo "  LLTV: $LLTV"
+    echo ""
+    
+    # Calculate market ID using cast
+    MARKET_ID=$(cast keccak "$(cast abi-encode "f(address,address,address,address,uint256)" $LOAN_TOKEN $COLLATERAL_TOKEN $ORACLE $IRM $LLTV)")
+    echo "Market ID: $MARKET_ID"
 
-# Show current addresses
-show:
-    @echo "Current deployed addresses:"
-    @grep -E "^(MOCK_USDC_ADDRESS|MOCK_ORACLE_ADDRESS|MOCK_POLYMARKET_CTF_ADDRESS|RECESSION_NO_WRAPPER_ADDRESS)=" .env 2>/dev/null || echo "No addresses found"
-
-# Clean artifacts
-clean:
-    rm -rf broadcast/ cache/ out/
-
+# Borrow 1 USDC using config values
 borrow-1-usdc:
-    cast send 0x1bF0c2541F820E775182832f06c0B7Fc27A25f67 "borrow((address,address,address,address,uint256),uint256,uint256,address,address)" "(0x33eef5d955da603208dec0d710c7285ff4a4f379,0x2ceb0cb6bbbbea6f3dead524bccbcc26bc99df9b,0x70e5880144b02388b55fa19074d752b5f00b6c6b,0xe675A2161D4a6E2de2eeD70ac98EEBf257FBF0B0,770000000000000000)" 1000000 0 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 --rpc-url $POLYGON_RPC --account chromion
+    #!/usr/bin/env bash
+    if [ ! -f "protocol-config.json" ] || [ ! -f "market-deployment.json" ]; then
+        echo "Error: Both protocol-config.json and market-deployment.json are required"
+        exit 1
+    fi
+    
+    # Extract required values
+    MORPHO_BLUE=$(jq -r '.morpho.morphoBlueAddress' protocol-config.json)
+    LOAN_TOKEN=$(jq -r '.contracts.mockUsdc' market-deployment.json)
+    COLLATERAL_TOKEN=$(jq -r '.contracts.recessionNoWrapper' market-deployment.json)
+    ORACLE=$(jq -r '.contracts.mockOracle' market-deployment.json)
+    IRM=$(jq -r '.morpho.adaptiveCurveIrmAddress' protocol-config.json)
+    LLTV=$(jq -r '.market.lltv' protocol-config.json)
+    
+    # Validate addresses
+    if [ "$LOAN_TOKEN" = "null" ] || [ "$COLLATERAL_TOKEN" = "null" ] || [ "$ORACLE" = "null" ]; then
+        echo "Error: Missing deployed contract addresses. Run 'just update-market-config' first."
+        exit 1
+    fi
+    
+    echo "Borrowing 1 USDC with market parameters:"
+    echo "  Morpho Blue: $MORPHO_BLUE"
+    echo "  Loan Token: $LOAN_TOKEN"
+    echo "  Collateral Token: $COLLATERAL_TOKEN"
+    echo "  Oracle: $ORACLE"
+    echo "  IRM: $IRM"
+    echo "  LLTV: $LLTV"
+    echo ""
+    
+    # Execute borrow transaction
+    cast send "$MORPHO_BLUE" "borrow((address,address,address,address,uint256),uint256,uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" 1000000 0 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 --rpc-url $POLYGON_RPC --account chromion
 

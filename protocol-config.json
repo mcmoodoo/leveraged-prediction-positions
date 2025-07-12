@@ -1,0 +1,14 @@
+{
+  "metadata": {
+    "description": "Static protocol configuration for leveraged prediction positions market",
+    "network": "polygon",
+    "chainId": "137"
+  },
+  "morpho": {
+    "morphoBlueAddress": "0x1bF0c2541F820E775182832f06c0B7Fc27A25f67",
+    "adaptiveCurveIrmAddress": "0xe675A2161D4a6E2de2eeD70ac98EEBf257FBF0B0"
+  },
+  "market": {
+    "lltv": "770000000000000000"
+  }
+}
