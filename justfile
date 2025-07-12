@@ -172,7 +172,7 @@ calculate-market-id:
     MARKET_ID=$(cast keccak "$(cast abi-encode "f(address,address,address,address,uint256)" $LOAN_TOKEN $COLLATERAL_TOKEN $ORACLE $IRM $LLTV)")
     echo "Market ID: $MARKET_ID"
 
-# Borrow 1 USDC using config values
+# Borrow USDC using config values
 borrow-usdc amount:
     #!/usr/bin/env bash
     if [ ! -f "protocol-config.json" ] || [ ! -f "market-deployment.json" ]; then
@@ -205,4 +205,158 @@ borrow-usdc amount:
     
     # Execute borrow transaction
     cast send "$MORPHO_BLUE" "borrow((address,address,address,address,uint256),uint256,uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" $(({{amount}}*1000000)) 0 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 --rpc-url $POLYGON_RPC --account chromion
+
+# Repay USDC using config values
+repay-usdc amount:
+    #!/usr/bin/env bash
+    if [ ! -f "protocol-config.json" ] || [ ! -f "market-deployment.json" ]; then
+        echo "Error: Both protocol-config.json and market-deployment.json are required"
+        exit 1
+    fi
+    
+    # Extract required values
+    MORPHO_BLUE=$(jq -r '.morpho.morphoBlueAddress' protocol-config.json)
+    LOAN_TOKEN=$(jq -r '.contracts.mockUsdc' market-deployment.json)
+    COLLATERAL_TOKEN=$(jq -r '.contracts.recessionNoWrapper' market-deployment.json)
+    ORACLE=$(jq -r '.contracts.mockOracle' market-deployment.json)
+    IRM=$(jq -r '.morpho.adaptiveCurveIrmAddress' protocol-config.json)
+    LLTV=$(jq -r '.market.lltv' protocol-config.json)
+    
+    # Validate addresses
+    if [ "$LOAN_TOKEN" = "null" ] || [ "$COLLATERAL_TOKEN" = "null" ] || [ "$ORACLE" = "null" ]; then
+        echo "Error: Missing deployed contract addresses. Run 'just update-market-config' first."
+        exit 1
+    fi
+    
+    echo "Repaying {{amount}} USDC - scaled by decimals(): $(({{amount}} * 1000000)) - with market parameters:"
+    echo "  Morpho Blue: $MORPHO_BLUE"
+    echo "  Loan Token: $LOAN_TOKEN"
+    echo "  Collateral Token: $COLLATERAL_TOKEN"
+    echo "  Oracle: $ORACLE"
+    echo "  IRM: $IRM"
+    echo "  LLTV: $LLTV"
+    echo ""
+    
+    # Execute repay transaction
+    cast send "$MORPHO_BLUE" "repay((address,address,address,address,uint256),uint256,uint256,address,bytes)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" $(({{amount}}*1000000)) 0 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 "0x" --rpc-url $POLYGON_RPC --account chromion
+
+# Supply/Lend wrapped CTF tokens as collateral
+supply-collateral amount:
+    #!/usr/bin/env bash
+    if [ ! -f "protocol-config.json" ] || [ ! -f "market-deployment.json" ]; then
+        echo "Error: Both protocol-config.json and market-deployment.json are required"
+        exit 1
+    fi
+    
+    # Extract required values
+    MORPHO_BLUE=$(jq -r '.morpho.morphoBlueAddress' protocol-config.json)
+    LOAN_TOKEN=$(jq -r '.contracts.mockUsdc' market-deployment.json)
+    COLLATERAL_TOKEN=$(jq -r '.contracts.recessionNoWrapper' market-deployment.json)
+    ORACLE=$(jq -r '.contracts.mockOracle' market-deployment.json)
+    IRM=$(jq -r '.morpho.adaptiveCurveIrmAddress' protocol-config.json)
+    LLTV=$(jq -r '.market.lltv' protocol-config.json)
+    
+    # Validate addresses
+    if [ "$LOAN_TOKEN" = "null" ] || [ "$COLLATERAL_TOKEN" = "null" ] || [ "$ORACLE" = "null" ]; then
+        echo "Error: Missing deployed contract addresses. Run 'just update-market-config' first."
+        exit 1
+    fi
+    
+    echo "Supplying {{amount}} wrapped CTF tokens as collateral - scaled by decimals(): $(({{amount}} * 1000000000000000000)) - with market parameters:"
+    echo "  Morpho Blue: $MORPHO_BLUE"
+    echo "  Loan Token: $LOAN_TOKEN"
+    echo "  Collateral Token: $COLLATERAL_TOKEN"
+    echo "  Oracle: $ORACLE"
+    echo "  IRM: $IRM"
+    echo "  LLTV: $LLTV"
+    echo ""
+    
+    # Execute supply collateral transaction
+    cast send "$MORPHO_BLUE" "supplyCollateral((address,address,address,address,uint256),uint256,address,bytes)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" $(({{amount}}*1000000000000000000)) 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 "0x" --rpc-url $POLYGON_RPC --account chromion
+
+# Withdraw collateral
+withdraw-collateral amount:
+    #!/usr/bin/env bash
+    if [ ! -f "protocol-config.json" ] || [ ! -f "market-deployment.json" ]; then
+        echo "Error: Both protocol-config.json and market-deployment.json are required"
+        exit 1
+    fi
+    
+    # Extract required values
+    MORPHO_BLUE=$(jq -r '.morpho.morphoBlueAddress' protocol-config.json)
+    LOAN_TOKEN=$(jq -r '.contracts.mockUsdc' market-deployment.json)
+    COLLATERAL_TOKEN=$(jq -r '.contracts.recessionNoWrapper' market-deployment.json)
+    ORACLE=$(jq -r '.contracts.mockOracle' market-deployment.json)
+    IRM=$(jq -r '.morpho.adaptiveCurveIrmAddress' protocol-config.json)
+    LLTV=$(jq -r '.market.lltv' protocol-config.json)
+    
+    # Validate addresses
+    if [ "$LOAN_TOKEN" = "null" ] || [ "$COLLATERAL_TOKEN" = "null" ] || [ "$ORACLE" = "null" ]; then
+        echo "Error: Missing deployed contract addresses. Run 'just update-market-config' first."
+        exit 1
+    fi
+    
+    echo "Withdrawing {{amount}} wrapped CTF tokens collateral - scaled by decimals(): $(({{amount}} * 1000000000000000000)) - with market parameters:"
+    echo "  Morpho Blue: $MORPHO_BLUE"
+    echo "  Loan Token: $LOAN_TOKEN"
+    echo "  Collateral Token: $COLLATERAL_TOKEN"
+    echo "  Oracle: $ORACLE"
+    echo "  IRM: $IRM"
+    echo "  LLTV: $LLTV"
+    echo ""
+    
+    # Execute withdraw collateral transaction
+    cast send "$MORPHO_BLUE" "withdrawCollateral((address,address,address,address,uint256),uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" $(({{amount}}*1000000000000000000)) 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 --rpc-url $POLYGON_RPC --account chromion
+
+# Wrap ERC1155 CTF tokens to ERC20
+wrap-ctf amount:
+    #!/usr/bin/env bash
+    if [ ! -f "market-deployment.json" ]; then
+        echo "Error: market-deployment.json is required"
+        exit 1
+    fi
+    
+    # Extract required values
+    CTF_WRAPPER=$(jq -r '.contracts.recessionNoWrapper' market-deployment.json)
+    TOKEN_ID=$(jq -r '.tokenIds.mockRecessionNoTokenId' market-deployment.json)
+    
+    # Validate addresses
+    if [ "$CTF_WRAPPER" = "null" ] || [ "$TOKEN_ID" = "null" ]; then
+        echo "Error: Missing deployed contract addresses. Run 'just update-market-config' first."
+        exit 1
+    fi
+    
+    echo "Wrapping {{amount}} ERC1155 CTF tokens (Token ID: $TOKEN_ID) to ERC20:"
+    echo "  CTF Wrapper: $CTF_WRAPPER"
+    echo "  Amount: $(({{amount}} * 1000000000000000000))"
+    echo ""
+    
+    # Execute wrap transaction
+    cast send "$CTF_WRAPPER" "wrap(uint256,uint256)" "$TOKEN_ID" $(({{amount}}*1000000000000000000)) --rpc-url $POLYGON_RPC --account chromion
+
+# Unwrap ERC20 back to ERC1155 CTF tokens
+unwrap-ctf amount:
+    #!/usr/bin/env bash
+    if [ ! -f "market-deployment.json" ]; then
+        echo "Error: market-deployment.json is required"
+        exit 1
+    fi
+    
+    # Extract required values
+    CTF_WRAPPER=$(jq -r '.contracts.recessionNoWrapper' market-deployment.json)
+    TOKEN_ID=$(jq -r '.tokenIds.mockRecessionNoTokenId' market-deployment.json)
+    
+    # Validate addresses
+    if [ "$CTF_WRAPPER" = "null" ] || [ "$TOKEN_ID" = "null" ]; then
+        echo "Error: Missing deployed contract addresses. Run 'just update-market-config' first."
+        exit 1
+    fi
+    
+    echo "Unwrapping {{amount}} ERC20 tokens back to ERC1155 CTF tokens (Token ID: $TOKEN_ID):"
+    echo "  CTF Wrapper: $CTF_WRAPPER"
+    echo "  Amount: $(({{amount}} * 1000000000000000000))"
+    echo ""
+    
+    # Execute unwrap transaction
+    cast send "$CTF_WRAPPER" "unwrap(uint256,uint256)" "$TOKEN_ID" $(({{amount}}*1000000000000000000)) --rpc-url $POLYGON_RPC --account chromion
 
