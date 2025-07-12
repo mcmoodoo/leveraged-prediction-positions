@@ -173,7 +173,7 @@ calculate-market-id:
     echo "Market ID: $MARKET_ID"
 
 # Borrow 1 USDC using config values
-borrow-1-usdc:
+borrow-usdc amount:
     #!/usr/bin/env bash
     if [ ! -f "protocol-config.json" ] || [ ! -f "market-deployment.json" ]; then
         echo "Error: Both protocol-config.json and market-deployment.json are required"
@@ -194,7 +194,7 @@ borrow-1-usdc:
         exit 1
     fi
     
-    echo "Borrowing 1 USDC with market parameters:"
+    echo "Borrowing {{amount}} USDC - scaled by decimals(): $(({{amount}} * 1000000)) - with market parameters:"
     echo "  Morpho Blue: $MORPHO_BLUE"
     echo "  Loan Token: $LOAN_TOKEN"
     echo "  Collateral Token: $COLLATERAL_TOKEN"
@@ -204,5 +204,5 @@ borrow-1-usdc:
     echo ""
     
     # Execute borrow transaction
-    cast send "$MORPHO_BLUE" "borrow((address,address,address,address,uint256),uint256,uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" 1000000 0 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 --rpc-url $POLYGON_RPC --account chromion
+    cast send "$MORPHO_BLUE" "borrow((address,address,address,address,uint256),uint256,uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" $(({{amount}}*1000000)) 0 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 --rpc-url $POLYGON_RPC --account chromion
 
