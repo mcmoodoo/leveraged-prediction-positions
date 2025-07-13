@@ -10,7 +10,7 @@ contract MockOracleScript is Script {
     function setUp() public {}
 
     function run() public {
-        uint256 initialPrice = 0.7 * 10 ** 18; // How many loan tokens (mockUSDC) per one unit of collateral (RecessionNoWrappedShare)
+        uint256 initialPrice = 0.7 * 10 ** 36; // How many loan tokens (mockUSDC) per one unit of collateral (RecessionNoWrappedShare)
 
         vm.startBroadcast();
 
