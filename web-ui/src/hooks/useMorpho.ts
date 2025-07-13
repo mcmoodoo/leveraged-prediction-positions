@@ -1,35 +1,20 @@
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { parseUnits, keccak256, encodeAbiParameters, parseAbiParameters, toHex } from 'viem'
-import { CONTRACT_ADDRESSES, TOKEN_IDS, CONFIG } from '../contracts/constants'
-import { MORPHO_BLUE_ABI, ERC20_ABI, CTF_WRAPPER_ABI, ERC1155_ABI } from '../contracts/abis'
+import { CONTRACT_ADDRESSES, TOKEN_IDS, MARKET_PARAMS, CALCULATED_MARKET_ID } from '../contracts/constants'
 import { TOKEN_DECIMALS } from '../contracts/constants'
+import { 
+  morphoBlueAbi, 
+  mockUsdcAbi, 
+  ctfWrapperAbi, 
+  mockPolyMarketCtfAbi 
+} from '../generated'
 
-const MARKET_PARAMS = {
-  loanToken: CONTRACT_ADDRESSES.MOCK_USDC,
-  collateralToken: CONTRACT_ADDRESSES.CTF_WRAPPER,
-  oracle: CONTRACT_ADDRESSES.MOCK_ORACLE,
-  irm: CONTRACT_ADDRESSES.ADAPTIVE_CURVE_IRM,
-  lltv: BigInt(CONFIG.LLTV),
-}
-
-// Calculate the correct market ID from parameters
-const CALCULATED_MARKET_ID = keccak256(
-  encodeAbiParameters(
-    parseAbiParameters('address,address,address,address,uint256'),
-    [
-      MARKET_PARAMS.loanToken,
-      MARKET_PARAMS.collateralToken,
-      MARKET_PARAMS.oracle,
-      MARKET_PARAMS.irm,
-      MARKET_PARAMS.lltv
-    ]
-  )
-)
+// Market params and calculated ID are now imported from constants
 
 export function useUserPosition(userAddress?: `0x${string}`) {
   return useReadContract({
-    address: CONTRACT_ADDRESSES.MORPHO_BLUE,
-    abi: MORPHO_BLUE_ABI,
+    address: CONTRACT_ADDRESSES.morphoBlueAddress,
+    abi: morphoBlueAbi,
     functionName: 'position',
     args: [CALCULATED_MARKET_ID, userAddress!],
     query: { enabled: !!userAddress },
@@ -38,8 +23,8 @@ export function useUserPosition(userAddress?: `0x${string}`) {
 
 export function useMarketData() {
   return useReadContract({
-    address: CONTRACT_ADDRESSES.MORPHO_BLUE,
-    abi: MORPHO_BLUE_ABI,
+    address: CONTRACT_ADDRESSES.morphoBlueAddress,
+    abi: morphoBlueAbi,
     functionName: 'market',
     args: [CALCULATED_MARKET_ID],
   })
@@ -47,8 +32,8 @@ export function useMarketData() {
 
 export function useUSDCBalance(userAddress?: `0x${string}`) {
   return useReadContract({
-    address: CONTRACT_ADDRESSES.MOCK_USDC,
-    abi: ERC20_ABI,
+    address: CONTRACT_ADDRESSES.mockUsdc,
+    abi: mockUsdcAbi,
     functionName: 'balanceOf',
     args: [userAddress!],
     query: { enabled: !!userAddress },
@@ -57,8 +42,8 @@ export function useUSDCBalance(userAddress?: `0x${string}`) {
 
 export function useCTFBalance(userAddress?: `0x${string}`) {
   return useReadContract({
-    address: CONTRACT_ADDRESSES.CTF_WRAPPER,
-    abi: CTF_WRAPPER_ABI,
+    address: CONTRACT_ADDRESSES.recessionNoWrapper,
+    abi: ctfWrapperAbi,
     functionName: 'balanceOf',
     args: [userAddress!],
     query: { enabled: !!userAddress },
@@ -67,40 +52,40 @@ export function useCTFBalance(userAddress?: `0x${string}`) {
 
 export function useRawCTFBalance(userAddress?: `0x${string}`) {
   return useReadContract({
-    address: CONTRACT_ADDRESSES.MOCK_POLYMARKET_CTF,
-    abi: ERC1155_ABI,
+    address: CONTRACT_ADDRESSES.mockPolyMarketCTF,
+    abi: mockPolyMarketCtfAbi,
     functionName: 'balanceOf',
-    args: [userAddress!, BigInt(TOKEN_IDS.RECESSION_NO)],
+    args: [userAddress!, BigInt(TOKEN_IDS.mockRecessionNoTokenId)],
     query: { enabled: !!userAddress },
   })
 }
 
 export function useUSDCAllowance(userAddress?: `0x${string}`) {
   return useReadContract({
-    address: CONTRACT_ADDRESSES.MOCK_USDC,
-    abi: ERC20_ABI,
+    address: CONTRACT_ADDRESSES.mockUsdc,
+    abi: mockUsdcAbi,
     functionName: 'allowance',
-    args: [userAddress!, CONTRACT_ADDRESSES.MORPHO_BLUE],
+    args: [userAddress!, CONTRACT_ADDRESSES.morphoBlueAddress],
     query: { enabled: !!userAddress },
   })
 }
 
 export function useCTFAllowance(userAddress?: `0x${string}`) {
   return useReadContract({
-    address: CONTRACT_ADDRESSES.CTF_WRAPPER,
-    abi: ERC20_ABI,
+    address: CONTRACT_ADDRESSES.recessionNoWrapper,
+    abi: mockUsdcAbi,
     functionName: 'allowance',
-    args: [userAddress!, CONTRACT_ADDRESSES.MORPHO_BLUE],
+    args: [userAddress!, CONTRACT_ADDRESSES.morphoBlueAddress],
     query: { enabled: !!userAddress },
   })
 }
 
 export function useRawCTFApproval(userAddress?: `0x${string}`) {
   return useReadContract({
-    address: CONTRACT_ADDRESSES.MOCK_POLYMARKET_CTF,
-    abi: ERC1155_ABI,
+    address: CONTRACT_ADDRESSES.mockPolyMarketCTF,
+    abi: mockPolyMarketCtfAbi,
     functionName: 'isApprovedForAll',
-    args: [userAddress!, CONTRACT_ADDRESSES.CTF_WRAPPER],
+    args: [userAddress!, CONTRACT_ADDRESSES.recessionNoWrapper],
     query: { enabled: !!userAddress },
   })
 }
@@ -125,14 +110,14 @@ export function useMorphoTransactions() {
     console.log('  oracle:', MARKET_PARAMS.oracle)
     console.log('  irm:', MARKET_PARAMS.irm)
     console.log('  lltv:', MARKET_PARAMS.lltv)
-    console.log('CONTRACT_ADDRESSES.MORPHO_BLUE:', CONTRACT_ADDRESSES.MORPHO_BLUE)
+    console.log('CONTRACT_ADDRESSES.morphoBlueAddress:', CONTRACT_ADDRESSES.morphoBlueAddress)
     
     const emptyBytes = toHex('')
     console.log('emptyBytes value:', emptyBytes)
     
     const contractCall = {
-      address: CONTRACT_ADDRESSES.MORPHO_BLUE,
-      abi: MORPHO_BLUE_ABI,
+      address: CONTRACT_ADDRESSES.morphoBlueAddress,
+      abi: morphoBlueAbi,
       functionName: 'supply',
       args: [
         MARKET_PARAMS,
@@ -155,8 +140,8 @@ export function useMorphoTransactions() {
   const withdraw = (amount: string, userAddress: `0x${string}`) => {
     const assets = parseUnits(amount, TOKEN_DECIMALS.USDC)
     writeContract({
-      address: CONTRACT_ADDRESSES.MORPHO_BLUE,
-      abi: MORPHO_BLUE_ABI,
+      address: CONTRACT_ADDRESSES.morphoBlueAddress,
+      abi: morphoBlueAbi,
       functionName: 'withdraw',
       args: [
         MARKET_PARAMS,
@@ -178,8 +163,8 @@ const borrow = (amount: string, userAddress: `0x${string}`) => {
   console.log("MARKET_PARAMS:", MARKET_PARAMS);
 
   writeContract({
-    address: CONTRACT_ADDRESSES.MORPHO_BLUE,
-    abi: MORPHO_BLUE_ABI,
+    address: CONTRACT_ADDRESSES.morphoBlueAddress,
+    abi: morphoBlueAbi,
     functionName: 'borrow',
     args: [
       MARKET_PARAMS,
@@ -194,8 +179,8 @@ const borrow = (amount: string, userAddress: `0x${string}`) => {
   const repay = (amount: string, userAddress: `0x${string}`) => {
     const assets = parseUnits(amount, TOKEN_DECIMALS.USDC)
     writeContract({
-      address: CONTRACT_ADDRESSES.MORPHO_BLUE,
-      abi: MORPHO_BLUE_ABI,
+      address: CONTRACT_ADDRESSES.morphoBlueAddress,
+      abi: morphoBlueAbi,
       functionName: 'repay',
       args: [
         MARKET_PARAMS,
@@ -210,8 +195,8 @@ const borrow = (amount: string, userAddress: `0x${string}`) => {
   const supplyCollateral = (amount: string, userAddress: `0x${string}`) => {
     const assets = parseUnits(amount, TOKEN_DECIMALS.CTF_WRAPPER)
     writeContract({
-      address: CONTRACT_ADDRESSES.MORPHO_BLUE,
-      abi: MORPHO_BLUE_ABI,
+      address: CONTRACT_ADDRESSES.morphoBlueAddress,
+      abi: morphoBlueAbi,
       functionName: 'supplyCollateral',
       args: [
         MARKET_PARAMS,
@@ -225,8 +210,8 @@ const borrow = (amount: string, userAddress: `0x${string}`) => {
   const withdrawCollateral = (amount: string, userAddress: `0x${string}`) => {
     const assets = parseUnits(amount, TOKEN_DECIMALS.CTF_WRAPPER)
     writeContract({
-      address: CONTRACT_ADDRESSES.MORPHO_BLUE,
-      abi: MORPHO_BLUE_ABI,
+      address: CONTRACT_ADDRESSES.morphoBlueAddress,
+      abi: morphoBlueAbi,
       functionName: 'withdrawCollateral',
       args: [
         MARKET_PARAMS,
@@ -259,55 +244,55 @@ export function useTokenTransactions() {
   const approveUSDC = (amount: string) => {
     const value = parseUnits(amount, TOKEN_DECIMALS.USDC)
     writeContract({
-      address: CONTRACT_ADDRESSES.MOCK_USDC,
-      abi: ERC20_ABI,
+      address: CONTRACT_ADDRESSES.mockUsdc,
+      abi: mockUsdcAbi,
       functionName: 'approve',
-      args: [CONTRACT_ADDRESSES.MORPHO_BLUE, value],
+      args: [CONTRACT_ADDRESSES.morphoBlueAddress, value],
     })
   }
 
   const approveMaxUSDC = () => {
     writeContract({
-      address: CONTRACT_ADDRESSES.MOCK_USDC,
-      abi: ERC20_ABI,
+      address: CONTRACT_ADDRESSES.mockUsdc,
+      abi: mockUsdcAbi,
       functionName: 'approve',
-      args: [CONTRACT_ADDRESSES.MORPHO_BLUE, BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')],
+      args: [CONTRACT_ADDRESSES.morphoBlueAddress, BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')],
     })
   }
 
   const approveCTF = (amount: string) => {
     const value = parseUnits(amount, TOKEN_DECIMALS.CTF_WRAPPER)
     writeContract({
-      address: CONTRACT_ADDRESSES.CTF_WRAPPER,
-      abi: ERC20_ABI,
+      address: CONTRACT_ADDRESSES.recessionNoWrapper,
+      abi: mockUsdcAbi,
       functionName: 'approve',
-      args: [CONTRACT_ADDRESSES.MORPHO_BLUE, value],
+      args: [CONTRACT_ADDRESSES.morphoBlueAddress, value],
     })
   }
 
   const approveMaxCTF = () => {
     writeContract({
-      address: CONTRACT_ADDRESSES.CTF_WRAPPER,
-      abi: ERC20_ABI,
+      address: CONTRACT_ADDRESSES.recessionNoWrapper,
+      abi: mockUsdcAbi,
       functionName: 'approve',
-      args: [CONTRACT_ADDRESSES.MORPHO_BLUE, BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')],
+      args: [CONTRACT_ADDRESSES.morphoBlueAddress, BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')],
     })
   }
 
   const approveRawCTF = () => {
     writeContract({
-      address: CONTRACT_ADDRESSES.MOCK_POLYMARKET_CTF,
-      abi: ERC1155_ABI,
+      address: CONTRACT_ADDRESSES.mockPolyMarketCTF,
+      abi: mockPolyMarketCtfAbi,
       functionName: 'setApprovalForAll',
-      args: [CONTRACT_ADDRESSES.CTF_WRAPPER, true],
+      args: [CONTRACT_ADDRESSES.recessionNoWrapper, true],
     })
   }
 
   const wrapCTF = (amount: string) => {
     const value = BigInt(amount) // ERC1155 tokens don't have decimals
     writeContract({
-      address: CONTRACT_ADDRESSES.CTF_WRAPPER,
-      abi: CTF_WRAPPER_ABI,
+      address: CONTRACT_ADDRESSES.recessionNoWrapper,
+      abi: ctfWrapperAbi,
       functionName: 'wrap',
       args: [value],
     })
@@ -316,8 +301,8 @@ export function useTokenTransactions() {
   const unwrapCTF = (amount: string) => {
     const value = BigInt(amount)
     writeContract({
-      address: CONTRACT_ADDRESSES.CTF_WRAPPER,
-      abi: CTF_WRAPPER_ABI,
+      address: CONTRACT_ADDRESSES.recessionNoWrapper,
+      abi: ctfWrapperAbi,
       functionName: 'unwrap',
       args: [value],
     })

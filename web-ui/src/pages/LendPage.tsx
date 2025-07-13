@@ -3,8 +3,7 @@ import { useAccount } from 'wagmi'
 import { formatUnits, parseUnits } from 'viem'
 import { useMorphoTransactions, useTokenTransactions, useUSDCBalance, useUSDCAllowance, useUserPosition } from '../hooks/useMorpho'
 import { MarketValidation } from '../components/MarketValidation'
-import { CONTRACT_ADDRESSES, CONFIG, TOKEN_DECIMALS } from '../contracts/constants'
-import { keccak256, encodeAbiParameters, parseAbiParameters } from 'viem'
+import { CONTRACT_ADDRESSES, MARKET_PARAMS, CALCULATED_MARKET_ID, TOKEN_DECIMALS } from '../contracts/constants'
 
 export function LendPage() {
   const [supplyAmount, setSupplyAmount] = useState('')
@@ -17,27 +16,7 @@ export function LendPage() {
   const { supply, withdraw, isPending: isMorphoPending, isConfirming: isMorphoConfirming } = useMorphoTransactions()
   const { approveMaxUSDC, isPending: isApprovePending, isConfirming: isApproveConfirming } = useTokenTransactions()
 
-  // Debug info - calculate the exact parameters that will be passed
-  const MARKET_PARAMS = {
-    loanToken: CONTRACT_ADDRESSES.MOCK_USDC,
-    collateralToken: CONTRACT_ADDRESSES.CTF_WRAPPER,
-    oracle: CONTRACT_ADDRESSES.MOCK_ORACLE,
-    irm: CONTRACT_ADDRESSES.ADAPTIVE_CURVE_IRM,
-    lltv: BigInt(CONFIG.LLTV),
-  }
-
-  const CALCULATED_MARKET_ID = keccak256(
-    encodeAbiParameters(
-      parseAbiParameters('address,address,address,address,uint256'),
-      [
-        MARKET_PARAMS.loanToken,
-        MARKET_PARAMS.collateralToken,
-        MARKET_PARAMS.oracle,
-        MARKET_PARAMS.irm,
-        MARKET_PARAMS.lltv
-      ]
-    )
-  )
+  // Use market params and calculated ID from constants
 
   const supplyAmountInWei = supplyAmount ? parseUnits(supplyAmount, TOKEN_DECIMALS.USDC) : 0n
 
@@ -140,7 +119,7 @@ export function LendPage() {
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <h4 className="font-medium text-gray-800 mb-2">🔧 Debug: Supply Transaction Details</h4>
                 <div className="text-xs text-gray-700 space-y-1 font-mono">
-                  <p><strong>Contract:</strong> {CONTRACT_ADDRESSES.MORPHO_BLUE}</p>
+                  <p><strong>Contract:</strong> {CONTRACT_ADDRESSES.morphoBlueAddress}</p>
                   <p><strong>Function:</strong> supply</p>
                   <p><strong>Amount (input):</strong> {supplyAmount} USDC</p>
                   <p><strong>Amount (wei):</strong> {supplyAmountInWei.toString()}</p>

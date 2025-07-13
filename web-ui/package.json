@@ -8,7 +8,10 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "generate": "node scripts/extract-abis.js && npx wagmi generate",
+    "generate:abis": "node scripts/extract-abis.js",
+    "generate:contracts": "npx wagmi generate"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
@@ -30,6 +33,7 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.5.2",
+    "@wagmi/cli": "^2.3.1",
     "eslint": "^9.29.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",

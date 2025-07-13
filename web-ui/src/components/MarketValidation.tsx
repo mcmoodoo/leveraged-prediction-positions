@@ -1,14 +1,5 @@
 import { useReadContract } from 'wagmi'
-import { keccak256, encodeAbiParameters, parseAbiParameters } from 'viem'
-import { CONTRACT_ADDRESSES, MARKET_IDS, CONFIG } from '../contracts/constants'
-
-const MARKET_PARAMS = {
-  loanToken: CONTRACT_ADDRESSES.MOCK_USDC,
-  collateralToken: CONTRACT_ADDRESSES.CTF_WRAPPER,
-  oracle: CONTRACT_ADDRESSES.MOCK_ORACLE,
-  irm: CONTRACT_ADDRESSES.ADAPTIVE_CURVE_IRM,
-  lltv: BigInt(CONFIG.LLTV),
-}
+import { CONTRACT_ADDRESSES, MARKET_PARAMS, CALCULATED_MARKET_ID, EXPECTED_MARKET_ID } from '../contracts/constants'
 
 export function MarketValidation() {
   // Check if all addresses are defined
@@ -17,23 +8,12 @@ export function MarketValidation() {
     MARKET_PARAMS.oracle && 
     MARKET_PARAMS.irm
 
-  // Calculate expected market ID only if addresses are valid
-  const calculatedMarketId = hasValidAddresses ? keccak256(
-    encodeAbiParameters(
-      parseAbiParameters('address,address,address,address,uint256'),
-      [
-        MARKET_PARAMS.loanToken,
-        MARKET_PARAMS.collateralToken, 
-        MARKET_PARAMS.oracle,
-        MARKET_PARAMS.irm,
-        MARKET_PARAMS.lltv
-      ]
-    )
-  ) : null
+  // Use the calculated market ID from constants
+  const calculatedMarketId = hasValidAddresses ? CALCULATED_MARKET_ID : null
 
   // Check if market exists with our calculated ID
   const { data: marketData } = useReadContract({
-    address: CONTRACT_ADDRESSES.MORPHO_BLUE,
+    address: CONTRACT_ADDRESSES.morphoBlueAddress,
     abi: [{
       "type": "function", 
       "name": "market",
@@ -55,7 +35,7 @@ export function MarketValidation() {
 
   // Check oracle price
   const { data: oraclePrice } = useReadContract({
-    address: CONTRACT_ADDRESSES.MOCK_ORACLE,
+    address: CONTRACT_ADDRESSES.mockOracle,
     abi: [{
       "type": "function",
       "name": "latestRoundData", 
@@ -70,7 +50,7 @@ export function MarketValidation() {
       "stateMutability": "view"
     }],
     functionName: 'latestRoundData',
-    query: { enabled: !!CONTRACT_ADDRESSES.MOCK_ORACLE },
+    query: { enabled: !!CONTRACT_ADDRESSES.mockOracle },
   })
 
   return (
@@ -88,9 +68,9 @@ export function MarketValidation() {
         )}
         
         <p><strong>Market IDs:</strong></p>
-        <p>• Expected: {MARKET_IDS.MORPHO_MARKET}</p>
+        <p>• Expected: {EXPECTED_MARKET_ID}</p>
         <p>• Calculated: {calculatedMarketId || 'Error calculating market ID'}</p>
-        <p>• Match: {calculatedMarketId && calculatedMarketId === MARKET_IDS.MORPHO_MARKET ? '✅ YES' : '❌ NO'}</p>
+        <p>• Match: {calculatedMarketId && calculatedMarketId === EXPECTED_MARKET_ID ? '✅ YES' : '❌ NO'}</p>
         <p>• Using calculated ID in transactions: ✅ YES</p>
         
         <p><strong>Market Data:</strong></p>

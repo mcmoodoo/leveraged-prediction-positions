@@ -193,7 +193,7 @@ export function WrapPage() {
               <div>
                 <p className="font-medium text-neutral-700">Token ID:</p>
                 <p className="text-xs text-neutral-600 break-all font-mono">
-                  {TOKEN_IDS.RECESSION_NO}
+                  {TOKEN_IDS.mockRecessionNoTokenId}
                 </p>
               </div>
               
