@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-contract MockOracle {
-    uint256 public mockPrice;
+import {IOracle} from '@morpho-blue/contracts/interfaces/IOracle.sol';
+
+contract MockOracle is IOracle {
+    uint256 public price;
     uint256 public decimals = 18;
 
     mapping(address => bool) public isAuthorized;
@@ -13,12 +15,12 @@ contract MockOracle {
     }
 
     constructor(uint256 _initialPrice) {
-        mockPrice = _initialPrice;
+        price = _initialPrice;
         isAuthorized[msg.sender] = true;
     }
 
     function updatePrice(uint256 _newPrice) external onlyAuthorized {
-        mockPrice = _newPrice;
+        price = _newPrice;
     }
 
     function addAuthorized(address _addr) external onlyAuthorized {

@@ -17,7 +17,7 @@ contract MockOracleTest is Test {
     }
 
     function test_Deployment() public view {
-        assertEq(mockOracle.mockPrice(), INITIAL_PRICE);
+        assertEq(mockOracle.price(), INITIAL_PRICE);
         assertEq(mockOracle.decimals(), 18);
         assertTrue(mockOracle.isAuthorized(owner));
     }
@@ -27,7 +27,7 @@ contract MockOracleTest is Test {
         
         mockOracle.updatePrice(newPrice);
         
-        assertEq(mockOracle.mockPrice(), newPrice);
+        assertEq(mockOracle.price(), newPrice);
     }
 
     function test_UpdatePriceOnlyAuthorized() public {
@@ -43,7 +43,7 @@ contract MockOracleTest is Test {
         // User should now be able to update price
         vm.prank(user);
         mockOracle.updatePrice(200000000);
-        assertEq(mockOracle.mockPrice(), 200000000);
+        assertEq(mockOracle.price(), 200000000);
     }
 
     function test_RemoveAuthorized() public {
@@ -86,21 +86,21 @@ contract MockOracleTest is Test {
         // Both should be able to update price
         vm.prank(user);
         mockOracle.updatePrice(300000000);
-        assertEq(mockOracle.mockPrice(), 300000000);
+        assertEq(mockOracle.price(), 300000000);
         
         vm.prank(user2);
         mockOracle.updatePrice(400000000);
-        assertEq(mockOracle.mockPrice(), 400000000);
+        assertEq(mockOracle.price(), 400000000);
     }
 
     function test_ZeroPrice() public {
         mockOracle.updatePrice(0);
-        assertEq(mockOracle.mockPrice(), 0);
+        assertEq(mockOracle.price(), 0);
     }
 
     function test_LargePrice() public {
         uint256 largePrice = type(uint256).max;
         mockOracle.updatePrice(largePrice);
-        assertEq(mockOracle.mockPrice(), largePrice);
+        assertEq(mockOracle.price(), largePrice);
     }
 }

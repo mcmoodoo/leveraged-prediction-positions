@@ -56,12 +56,22 @@ borrow-usdc amount:
     cast send "$MORPHO_BLUE" "borrow((address,address,address,address,uint256),uint256,uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$MOCK_ORACLE,$ADAPTIVE_CURVE_IRM,$LLTV)" $(({{amount}}*10**$(cast call $LOAN_TOKEN "decimals()" --rpc-url $POLYGON_RPC | cast to-dec))) 0 $USER_ADDRESS $USER_ADDRESS --rpc-url $POLYGON_RPC --private-key $PRIVATE_KEY 
 repay-usdc amount:
     cast send "$MORPHO_BLUE" "repay((address,address,address,address,uint256),uint256,uint256,address,bytes)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$MOCK_ORACLE,$ADAPTIVE_CURVE_IRM,$LLTV)" $(({{amount}}*10**$(cast call $LOAN_TOKEN "decimals()" --rpc-url $POLYGON_RPC | cast to-dec))) 0 $USER_ADDRESS "0x" --rpc-url $POLYGON_RPC --private-key $PRIVATE_KEY 
-approve-morpho:
-    cast send "$COLLATERAL_TOKEN" "approve(address,uint256)" "$MORPHO_BLUE" 115792089237316195423570985008687907853269984665640564039457584007913129639935 --rpc-url $POLYGON_RPC --private-key $PRIVATE_KEY 
+approve-morpho-collateral:
+    cast send "$COLLATERAL_TOKEN" "approve(address,uint256)" "$MORPHO_BLUE" 115792089237316195423570985008687907853269984665640564039457584007913129639935 --rpc-url $POLYGON_RPC --private-key $PRIVATE_KEY
+
+approve-morpho-loan:
+    cast send "$LOAN_TOKEN" "approve(address,uint256)" "$MORPHO_BLUE" 115792089237316195423570985008687907853269984665640564039457584007913129639935 --rpc-url $POLYGON_RPC --private-key $PRIVATE_KEY 
 supply-collateral amount:
     cast send "$MORPHO_BLUE" "supplyCollateral((address,address,address,address,uint256),uint256,address,bytes)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$MOCK_ORACLE,$ADAPTIVE_CURVE_IRM,$LLTV)" $(({{amount}}*10**18)) $USER_ADDRESS "0x" --rpc-url $POLYGON_RPC --private-key $PRIVATE_KEY 
 withdraw-collateral amount:
-    cast send "$MORPHO_BLUE" "withdrawCollateral((address,address,address,address,uint256),uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$MOCK_ORACLE,$ADAPTIVE_CURVE_IRM,$LLTV)" $(({{amount}}*10**18)) $USER_ADDRESS $USER_ADDRESS --rpc-url $POLYGON_RPC --private-key $PRIVATE_KEY 
+    cast send "$MORPHO_BLUE" "withdrawCollateral((address,address,address,address,uint256),uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$MOCK_ORACLE,$ADAPTIVE_CURVE_IRM,$LLTV)" $(({{amount}}*10**18)) $USER_ADDRESS $USER_ADDRESS --rpc-url $POLYGON_RPC --private-key $PRIVATE_KEY
+
+# Lender operations
+supply-loan amount:
+    cast send "$MORPHO_BLUE" "supply((address,address,address,address,uint256),uint256,uint256,address,bytes)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$MOCK_ORACLE,$ADAPTIVE_CURVE_IRM,$LLTV)" $(({{amount}}*10**$(cast call $LOAN_TOKEN "decimals()" --rpc-url $POLYGON_RPC | cast to-dec))) 0 $USER_ADDRESS "0x" --rpc-url $POLYGON_RPC --private-key $PRIVATE_KEY
+
+withdraw-loan amount:
+    cast send "$MORPHO_BLUE" "withdraw((address,address,address,address,uint256),uint256,uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$MOCK_ORACLE,$ADAPTIVE_CURVE_IRM,$LLTV)" $(({{amount}}*10**$(cast call $LOAN_TOKEN "decimals()" --rpc-url $POLYGON_RPC | cast to-dec))) 0 $USER_ADDRESS $USER_ADDRESS --rpc-url $POLYGON_RPC --private-key $PRIVATE_KEY 
 # Token operations
 approve-wrap bool:
     cast send $MOCK_POLYMARKET_CTF "setApprovalForAll(address,bool)" $COLLATERAL_TOKEN {{bool}} --rpc-url $POLYGON_RPC --private-key $PRIVATE_KEY 

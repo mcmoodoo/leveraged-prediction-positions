@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
-import {IMorphoBlue, MarketParams} from "../src/IMorphoBlue.sol";
+import {IMorpho, MarketParams} from "@morpho-blue/contracts/interfaces/IMorpho.sol";
 
 contract CreateMorphoMarketScript is Script {
     function setUp() public {}
@@ -43,7 +43,7 @@ contract CreateMorphoMarketScript is Script {
 
         vm.startBroadcast();
 
-        IMorphoBlue(morphoBlue).createMarket(marketParams);
+        IMorpho(morphoBlue).createMarket(marketParams);
 
         console.log("Market created successfully!");
 
