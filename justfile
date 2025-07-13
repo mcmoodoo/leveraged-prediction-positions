@@ -312,6 +312,12 @@ withdraw-collateral amount:
     # Execute withdraw collateral transaction
     cast send "$MORPHO_BLUE" "withdrawCollateral((address,address,address,address,uint256),uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" $(({{amount}}*1000000000000000000)) {{USER_ADDRESS}} {{USER_ADDRESS}} --rpc-url $POLYGON_RPC --account chromion
 
+approve-wrap bool:
+    #!/usr/bin/env bash
+    CTF_CONTRACT=$(jq -r '.contracts.mockPolyMarketCTF' market-deployment.json)
+    CTF_WRAPPER=$(jq -r '.contracts.recessionNoWrapper' market-deployment.json)
+    cast send $CTF_CONTRACT "setApprovalForAll(address,bool)" $CTF_WRAPPER {{bool}} --rpc-url $POLYGON_RPC --account chromion
+
 # Wrap ERC1155 CTF tokens to ERC20
 wrap-ctf amount:
     #!/usr/bin/env bash
