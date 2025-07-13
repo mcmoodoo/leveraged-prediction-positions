@@ -1,5 +1,8 @@
 # Simple justfile for deploying contracts on Polygon
 
+# Configuration variables
+USER_ADDRESS := "0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9"
+
 # Extract all variables from JSON config files as environment variables
 extract-env:
     #!/usr/bin/env bash
@@ -38,6 +41,7 @@ deploy-ctf:
 
 # Deploy CTF Wrapper (requires MOCK_POLYMARKET_CTF_ADDRESS)
 deploy-wrapper:
+    @just update-market-config
     forge script script/RecessionNoCTFWrapper.s.sol:MockRecessionNoTokenWrapperScript --rpc-url $POLYGON_RPC --account chromion --broadcast
 
 # Create Morpho Market (requires all addresses above)
@@ -86,7 +90,7 @@ _update-market-config script_name contract_key:
       },
       "contracts": {},
       "tokenIds": {
-        "mockRecessionNoTokenId": "105452622481843462309689659320513353976826103710406847075024399449421535866880"
+        "mockRecessionNoTokenId": "67310324695548387399493871825869748760760185456703713607142904506781711187020"
       }
     }
     JSONEOF
@@ -94,7 +98,7 @@ _update-market-config script_name contract_key:
     
     # Ensure tokenIds section exists in existing config files
     if ! jq -e '.tokenIds' "$CONFIG_FILE" > /dev/null 2>&1; then
-        jq '. + {"tokenIds": {"mockRecessionNoTokenId": "105452622481843462309689659320513353976826103710406847075024399449421535866880"}}' "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+        jq '. + {"tokenIds": {"mockRecessionNoTokenId": "67310324695548387399493871825869748760760185456703713607142904506781711187020"}}' "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
     fi
     
     # Update the contract address and timestamp
@@ -204,7 +208,7 @@ borrow-usdc amount:
     echo ""
     
     # Execute borrow transaction
-    cast send "$MORPHO_BLUE" "borrow((address,address,address,address,uint256),uint256,uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" $(({{amount}}*1000000)) 0 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 --rpc-url $POLYGON_RPC --account chromion
+    cast send "$MORPHO_BLUE" "borrow((address,address,address,address,uint256),uint256,uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" $(({{amount}}*1000000)) 0 {{USER_ADDRESS}} {{USER_ADDRESS}} --rpc-url $POLYGON_RPC --account chromion
 
 # Repay USDC using config values
 repay-usdc amount:
@@ -238,7 +242,7 @@ repay-usdc amount:
     echo ""
     
     # Execute repay transaction
-    cast send "$MORPHO_BLUE" "repay((address,address,address,address,uint256),uint256,uint256,address,bytes)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" $(({{amount}}*1000000)) 0 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 "0x" --rpc-url $POLYGON_RPC --account chromion
+    cast send "$MORPHO_BLUE" "repay((address,address,address,address,uint256),uint256,uint256,address,bytes)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" $(({{amount}}*1000000)) 0 {{USER_ADDRESS}} "0x" --rpc-url $POLYGON_RPC --account chromion
 
 # Supply/Lend wrapped CTF tokens as collateral
 supply-collateral amount:
@@ -272,7 +276,7 @@ supply-collateral amount:
     echo ""
     
     # Execute supply collateral transaction
-    cast send "$MORPHO_BLUE" "supplyCollateral((address,address,address,address,uint256),uint256,address,bytes)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" $(({{amount}}*1000000000000000000)) 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 "0x" --rpc-url $POLYGON_RPC --account chromion
+    cast send "$MORPHO_BLUE" "supplyCollateral((address,address,address,address,uint256),uint256,address,bytes)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" $(({{amount}}*1000000000000000000)) {{USER_ADDRESS}} "0x" --rpc-url $POLYGON_RPC --account chromion
 
 # Withdraw collateral
 withdraw-collateral amount:
@@ -306,7 +310,7 @@ withdraw-collateral amount:
     echo ""
     
     # Execute withdraw collateral transaction
-    cast send "$MORPHO_BLUE" "withdrawCollateral((address,address,address,address,uint256),uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" $(({{amount}}*1000000000000000000)) 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 --rpc-url $POLYGON_RPC --account chromion
+    cast send "$MORPHO_BLUE" "withdrawCollateral((address,address,address,address,uint256),uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$ORACLE,$IRM,$LLTV)" $(({{amount}}*1000000000000000000)) {{USER_ADDRESS}} {{USER_ADDRESS}} --rpc-url $POLYGON_RPC --account chromion
 
 # Wrap ERC1155 CTF tokens to ERC20
 wrap-ctf amount:
@@ -332,7 +336,7 @@ wrap-ctf amount:
     echo ""
     
     # Execute wrap transaction
-    cast send "$CTF_WRAPPER" "wrap(uint256,uint256)" "$TOKEN_ID" $(({{amount}}*1000000000000000000)) --rpc-url $POLYGON_RPC --account chromion
+    cast send "$CTF_WRAPPER" "wrap(uint256)" $(({{amount}}*1000000000000000000)) --rpc-url $POLYGON_RPC --account chromion
 
 # Unwrap ERC20 back to ERC1155 CTF tokens
 unwrap-ctf amount:
@@ -358,7 +362,7 @@ unwrap-ctf amount:
     echo ""
     
     # Execute unwrap transaction
-    cast send "$CTF_WRAPPER" "unwrap(uint256,uint256)" "$TOKEN_ID" $(({{amount}}*1000000000000000000)) --rpc-url $POLYGON_RPC --account chromion
+    cast send "$CTF_WRAPPER" "unwrap(uint256)" $(({{amount}}*1000000000000000000)) --rpc-url $POLYGON_RPC --account chromion
 
 # Check USDC balance
 balance-usdc:
@@ -375,12 +379,12 @@ balance-usdc:
         exit 1
     fi
     
-    echo "Checking USDC balance for account: 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9"
+    echo "Checking USDC balance for account: {{USER_ADDRESS}}"
     echo "USDC Token: $USDC_TOKEN"
     echo ""
     
     # Get balance (6 decimals for USDC)
-    BALANCE=$(cast call "$USDC_TOKEN" "balanceOf(address)" 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 --rpc-url $POLYGON_RPC)
+    BALANCE=$(cast call "$USDC_TOKEN" "balanceOf(address)" {{USER_ADDRESS}} --rpc-url $POLYGON_RPC)
     BALANCE_DECIMAL=$(cast to-dec $BALANCE)
     BALANCE_FORMATTED=$(echo "scale=6; $BALANCE_DECIMAL / 1000000" | bc -l)
     
@@ -402,12 +406,12 @@ balance-wrapped-ctf:
         exit 1
     fi
     
-    echo "Checking wrapped CTF token balance for account: 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9"
+    echo "Checking wrapped CTF token balance for account: {{USER_ADDRESS}}"
     echo "Wrapped CTF Token: $CTF_WRAPPER"
     echo ""
     
     # Get balance (18 decimals for wrapped token)
-    BALANCE=$(cast call "$CTF_WRAPPER" "balanceOf(address)" 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 --rpc-url $POLYGON_RPC)
+    BALANCE=$(cast call "$CTF_WRAPPER" "balanceOf(address)" {{USER_ADDRESS}} --rpc-url $POLYGON_RPC)
     BALANCE_DECIMAL=$(cast to-dec $BALANCE)
     BALANCE_FORMATTED=$(echo "scale=18; $BALANCE_DECIMAL / 1000000000000000000" | bc -l)
     
@@ -430,18 +434,48 @@ balance-ctf:
         exit 1
     fi
     
-    echo "Checking ERC1155 CTF token balance for account: 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9"
+    echo "Checking ERC1155 CTF token balance for account: {{USER_ADDRESS}}"
     echo "CTF Contract: $CTF_CONTRACT"
     echo "Token ID: $TOKEN_ID"
     echo ""
     
     # Get balance (ERC1155 balanceOf)
-    BALANCE=$(cast call "$CTF_CONTRACT" "balanceOf(address,uint256)" 0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9 "$TOKEN_ID" --rpc-url $POLYGON_RPC)
+    BALANCE=$(cast call "$CTF_CONTRACT" "balanceOf(address,uint256)" {{USER_ADDRESS}} "$TOKEN_ID" --rpc-url $POLYGON_RPC)
     BALANCE_DECIMAL=$(cast to-dec $BALANCE)
     BALANCE_FORMATTED=$(echo "scale=18; $BALANCE_DECIMAL / 1000000000000000000" | bc -l)
     
     echo "Raw balance: $BALANCE_DECIMAL"
     echo "Formatted balance: $BALANCE_FORMATTED CTF"
+
+# Check ETH Above 100k YES token balance
+balance-eth-above-100k:
+    #!/usr/bin/env bash
+    if [ ! -f "market-deployment.json" ]; then
+        echo "Error: market-deployment.json is required"
+        exit 1
+    fi
+    
+    CTF_CONTRACT=$(jq -r '.contracts.mockPolyMarketCTF' market-deployment.json)
+    TOKEN_ID="87281599019034697689531413320289746248038848690942428021222400256634856611553"
+    
+    if [ "$CTF_CONTRACT" = "null" ]; then
+        echo "Error: Missing CTF contract address. Run 'just update-market-config' first."
+        exit 1
+    fi
+    
+    echo "Checking ETH Above 100k YES token balance for account: {{USER_ADDRESS}}"
+    echo "CTF Contract: $CTF_CONTRACT"
+    echo "Token ID: $TOKEN_ID (keccak256('Eth Above 100k YES token'))"
+    echo ""
+    
+    # Get balance (ERC1155 balanceOf)
+    BALANCE=$(cast call "$CTF_CONTRACT" "balanceOf(address,uint256)" {{USER_ADDRESS}} "$TOKEN_ID" --rpc-url $POLYGON_RPC)
+    BALANCE_DECIMAL=$(cast to-dec $BALANCE)
+    BALANCE_FORMATTED=$(echo "scale=18; $BALANCE_DECIMAL / 1000000000000000000" | bc -l)
+    
+    echo "Raw balance: $BALANCE_DECIMAL"
+    echo "Formatted balance: $BALANCE_FORMATTED ETH100k"
+
 
 # Check all token balances at once
 balance-all:
@@ -453,6 +487,9 @@ balance-all:
     @echo "2. Wrapped CTF Balance:"
     @just balance-wrapped-ctf
     @echo ""
-    @echo "3. Original ERC1155 CTF Balance:"
+    @echo "3. Original ERC1155 CTF Balance (Recession NO):"
     @just balance-ctf
+    @echo ""
+    @echo "4. ETH Above 100k YES Token Balance:"
+    @just balance-eth-above-100k
 

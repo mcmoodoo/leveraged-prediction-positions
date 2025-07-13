@@ -73,8 +73,8 @@ contract MockPolyMarketCTF is ERC1155, Ownable {
         // Mint the specified fungible token
         bytes32 recessionNoTokenId = keccak256("Recession NO token");
         bytes32 ethAbove100KYesTokenId = keccak256("Eth Above 100k YES token");
-        _mint(0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9, uint256(recessionNoTokenId), 100, "");
-        _mint(0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9, uint256(ethAbove100KYesTokenId), 100, "");
+        _mint(0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9, uint256(recessionNoTokenId), 100 * 10 ** 18, "");
+        _mint(0xe71DB3894A79BeBe377fbD7B601766660Aaea5f9, uint256(ethAbove100KYesTokenId), 100 * 10 ** 18, "");
     }
 
     function uri(uint256 tokenId) public view override returns (string memory) {
