@@ -53,16 +53,16 @@ calculate-market-id:
     cast keccak "$(cast abi-encode "f(address,address,address,address,uint256)" $LOAN_TOKEN $COLLATERAL_TOKEN $MOCK_ORACLE $ADAPTIVE_CURVE_IRM $LLTV)"
 
 borrow-usdc amount:
-    cast send "$MORPHO_BLUE" "borrow((address,address,address,address,uint256),uint256,uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$MOCK_ORACLE,$ADAPTIVE_CURVE_IRM,$LLTV)" $(({{amount}}*1000000)) 0 $USER_ADDRESS $USER_ADDRESS --rpc-url $POLYGON_RPC --account chromion
+    cast send "$MORPHO_BLUE" "borrow((address,address,address,address,uint256),uint256,uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$MOCK_ORACLE,$ADAPTIVE_CURVE_IRM,$LLTV)" $(({{amount}}*10**$(cast call $LOAN_TOKEN "decimals()" --rpc-url $POLYGON_RPC | cast to-dec))) 0 $USER_ADDRESS $USER_ADDRESS --rpc-url $POLYGON_RPC --account chromion
 
 repay-usdc amount:
-    cast send "$MORPHO_BLUE" "repay((address,address,address,address,uint256),uint256,uint256,address,bytes)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$MOCK_ORACLE,$ADAPTIVE_CURVE_IRM,$LLTV)" $(({{amount}}*1000000)) 0 $USER_ADDRESS "0x" --rpc-url $POLYGON_RPC --account chromion
+    cast send "$MORPHO_BLUE" "repay((address,address,address,address,uint256),uint256,uint256,address,bytes)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$MOCK_ORACLE,$ADAPTIVE_CURVE_IRM,$LLTV)" $(({{amount}}*10**$(cast call $LOAN_TOKEN "decimals()" --rpc-url $POLYGON_RPC | cast to-dec))) 0 $USER_ADDRESS "0x" --rpc-url $POLYGON_RPC --account chromion
 
 supply-collateral amount:
-    cast send "$MORPHO_BLUE" "supplyCollateral((address,address,address,address,uint256),uint256,address,bytes)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$MOCK_ORACLE,$ADAPTIVE_CURVE_IRM,$LLTV)" $(({{amount}}*1000000000000000000)) $USER_ADDRESS "0x" --rpc-url $POLYGON_RPC --account chromion
+    cast send "$MORPHO_BLUE" "supplyCollateral((address,address,address,address,uint256),uint256,address,bytes)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$MOCK_ORACLE,$ADAPTIVE_CURVE_IRM,$LLTV)" $(({{amount}}*10**$(cast call $COLLATERAL_TOKEN "decimals()" --rpc-url $POLYGON_RPC | cast to-dec))) $USER_ADDRESS "0x" --rpc-url $POLYGON_RPC --account chromion
 
 withdraw-collateral amount:
-    cast send "$MORPHO_BLUE" "withdrawCollateral((address,address,address,address,uint256),uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$MOCK_ORACLE,$ADAPTIVE_CURVE_IRM,$LLTV)" $(({{amount}}*1000000000000000000)) $USER_ADDRESS $USER_ADDRESS --rpc-url $POLYGON_RPC --account chromion
+    cast send "$MORPHO_BLUE" "withdrawCollateral((address,address,address,address,uint256),uint256,address,address)" "($LOAN_TOKEN,$COLLATERAL_TOKEN,$MOCK_ORACLE,$ADAPTIVE_CURVE_IRM,$LLTV)" $(({{amount}}*10**$(cast call $COLLATERAL_TOKEN "decimals()" --rpc-url $POLYGON_RPC | cast to-dec))) $USER_ADDRESS $USER_ADDRESS --rpc-url $POLYGON_RPC --account chromion
 
 # Token operations
 approve-wrap bool:
@@ -72,20 +72,20 @@ wrap-ctf amount:
     cast send "$COLLATERAL_TOKEN" "wrap(uint256)" $(({{amount}}*1000000000000000000)) --rpc-url $POLYGON_RPC --account chromion
 
 unwrap-ctf amount:
-    cast send "$COLLATERAL_TOKEN" "unwrap(uint256)" $(({{amount}}*1000000000000000000)) --rpc-url $POLYGON_RPC --account chromion
+    cast send "$COLLATERAL_TOKEN" "unwrap(uint256)" $(({{amount}}*10**$(cast call $COLLATERAL_TOKEN "decimals()" --rpc-url $POLYGON_RPC | cast to-dec))) --rpc-url $POLYGON_RPC --account chromion
 
 # Balance checks
 balance-usdc:
-    @echo "USDC: $(cast call "$LOAN_TOKEN" "balanceOf(address)" $USER_ADDRESS --rpc-url $POLYGON_RPC | xargs cast to-dec | awk '{print $1/1000000}')"
+    @echo "USDC: $(cast call "$LOAN_TOKEN" "balanceOf(address)" $USER_ADDRESS --rpc-url $POLYGON_RPC | cast to-dec | awk '{print $1/1000000}')"
 
 balance-wrapped-ctf:
-    @echo "Wrapped CTF: $(cast call "$COLLATERAL_TOKEN" "balanceOf(address)" $USER_ADDRESS --rpc-url $POLYGON_RPC | xargs cast to-dec | awk '{print $1/1000000000000000000}')"
+    @echo "Wrapped CTF: $(cast call "$COLLATERAL_TOKEN" "balanceOf(address)" $USER_ADDRESS --rpc-url $POLYGON_RPC | cast to-dec)"
 
 balance-ctf:
-    @echo "CTF: $(cast call "$MOCK_POLYMARKET_CTF" "balanceOf(address,uint256)" $USER_ADDRESS "$MOCK_RECESSION_NO_TOKEN_ID" --rpc-url $POLYGON_RPC | xargs cast to-dec | awk '{print $1/1000000000000000000}')"
+    @echo "CTF: $(cast call "$MOCK_POLYMARKET_CTF" "balanceOf(address,uint256)" $USER_ADDRESS "$MOCK_RECESSION_NO_TOKEN_ID" --rpc-url $POLYGON_RPC | cast to-dec | awk '{print $1/1000000000000000000}')"
 
 balance-eth-above-100k:
-    @echo "ETH100k: $(cast call "$MOCK_POLYMARKET_CTF" "balanceOf(address,uint256)" $USER_ADDRESS "$ETH_ABOVE_100K_TOKEN_ID" --rpc-url $POLYGON_RPC | xargs cast to-dec | awk '{print $1/1000000000000000000}')"
+    @echo "ETH100k: $(cast call "$MOCK_POLYMARKET_CTF" "balanceOf(address,uint256)" $USER_ADDRESS "$ETH_ABOVE_100K_TOKEN_ID" --rpc-url $POLYGON_RPC | cast to-dec | awk '{print $1/1000000000000000000}')"
 
 balance-all:
     @just balance-usdc && just balance-wrapped-ctf && just balance-ctf && just balance-eth-above-100k

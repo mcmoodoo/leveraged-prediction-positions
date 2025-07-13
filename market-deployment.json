@@ -3,13 +3,13 @@
     "marketName": "leveraged-prediction-positions",
     "network": "polygon",
     "chainId": "137",
-    "lastUpdated": "2025-07-12T21:32:25Z"
+    "lastUpdated": "2025-07-13T03:27:06Z"
   },
   "contracts": {
-    "mockUsdc": "0x363e05d4c3f8c31ad00bc574e1e2fb26fa72f582",
-    "mockOracle": "0xbc435ff7b365fee79839a8f965ceb2152731206a",
-    "mockPolyMarketCTF": "0x22feda9f41089bb8383c8ec7c88ef0069f724f98",
-    "recessionNoWrapper": "0x873a80cd6ca67670352812cb0cc0ec974f3f76d5"
+    "mockUsdc": "0xd9cdc56a9947093e3c0b93d0df2d580739c6b55d",
+    "mockOracle": "0x99b7ebe463ee8f8cb177d737811fdc151db76997",
+    "mockPolyMarketCTF": "0x7334e8d2308c8a9b5c735d6a730cffd22ef44304",
+    "recessionNoWrapper": "0xa1ada8f913ae9becc1b7b0d4aa9d38f36398c6cc"
   },
   "tokenIds": {
     "mockRecessionNoTokenId": "67310324695548387399493871825869748760760185456703713607142904506781711187020"
